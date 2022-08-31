@@ -36,6 +36,7 @@ typedef enum
     OP_PRINT,
     OP_IF,
     OP_END,
+    OP_OVER,
     OP_ELSE,
     OP_WHILE,
     OP_BEGIN

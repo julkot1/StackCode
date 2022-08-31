@@ -1,9 +1,12 @@
 #include <stdlib.h>
 #include "./include/structs.h"
 #include "./include/vm.h"
+#include "./include/parser.h"
 
 int main(int argc, char **args)
 {
+    char code[] = "10 10 + dup echo";
+    program pr = parse(code);
     operation program[] =
         {
             {OP_PUSH, {1, NUMBER}},

@@ -1,6 +1,6 @@
 CFLAGS=-I.
 DEPS = src/include/.h
-OBJ = src/main.o src/vm.o 
+OBJ = src/main.o src/vm.o src/parser.o 
 
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
@@ -8,3 +8,7 @@ OBJ = src/main.o src/vm.o
 stackcode: $(OBJ)
 	$(CC) -o $@ $^ $(CFLAGS)
 	rm $(OBJ)
+debug: $(OBJ)
+	$(CC) -Wall -ggdb -g -o $@ src/main.c src/vm.c src/parser.c 
+	rm $(OBJ)
+	gdb $@
