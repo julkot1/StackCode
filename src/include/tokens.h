@@ -1,4 +1,6 @@
 #pragma once
+#include "./structs.h"
+#define MAX_CONST_STRING_SIZE 512
 #define TOKEN_ADD "+"
 #define TOKEN_SUB "-"
 #define TOKEN_MUL "*"
@@ -23,5 +25,12 @@
 #define TOKEN_WHILE "while"
 #define TOKEN_END "end"
 #define TOKEN_PRINT "echo"
-
+#define TOKEN_STRING "\""
+#define TOKEN_ESCAPE_STRING "\\\""
+#define TOKEN_ARRAY_OPEN "["
+#define TOKEN_ARRAY_CLOSE "["
+#define TOKEN_TRUE "true"
+#define TOKEN_FALSE "false"
 int str_to_token(const char *str);
+int has_ending_token(opcode code);
+int has_begining_token(opcode code);

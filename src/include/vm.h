@@ -1,8 +1,6 @@
 #pragma once
 #include "structs.h"
 
-#define TRUE_TOKEN "true"
-#define FALSE_TOKEN "false"
 #define type_pair(a, b, t1, t2) ((a.type == t1 && b.type == t2) || (a.type == t2 && b.type == t1))
 
 #define STACK_SIZE 4096
@@ -56,4 +54,4 @@ void exec_end(operation op);
 void exec_while(operation op);
 void exec_else(operation op);
 void exec_operation(operation op);
-void exec(operation program[], int size);
+void exec(program pr);

@@ -5,21 +5,8 @@
 
 int main(int argc, char **args)
 {
-    char code[] = "10 10 + dup echo";
+    char code[] = "10 10 + dup echo 5 * dup echo";
     program pr = parse(code);
-    operation program[] =
-        {
-            {OP_PUSH, {1, NUMBER}},
-            {OP_BEGIN},
-            {OP_DUP},
-            {OP_PUSH, {10, NUMBER}},
-            {OP_GT},
-            {OP_WHILE, {10, NUMBER}},
-            {OP_DUP},
-            {OP_PRINT},
-            {OP_PUSH, {1, NUMBER}},
-            {OP_ADD},
-            {OP_END, {1, NUMBER}}};
-    exec(program, 11);
+    exec(pr);
     exit(EXIT_SUCCESS);
 }

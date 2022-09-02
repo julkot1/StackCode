@@ -4,6 +4,8 @@
 
 int str_to_token(const char *str)
 {
+    if (str == NULL)
+        return -2;
     if (strcmp(str, TOKEN_ADD) == 0)
         return OP_ADD;
     else if (strcmp(str, TOKEN_SUB) == 0)
@@ -34,5 +36,9 @@ int str_to_token(const char *str)
         return OP_ELSE;
     else if (strcmp(str, TOKEN_PRINT) == 0)
         return OP_PRINT;
+    else if (strcmp(str, TOKEN_ARRAY_OPEN) == 0)
+        return OP_ARRAY_BEGIN;
+    else if (strcmp(str, TOKEN_ARRAY_CLOSE) == 0)
+        return OP_ARRAY_END;
     return -1;
 }

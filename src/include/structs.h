@@ -39,10 +39,26 @@ typedef enum
     OP_OVER,
     OP_ELSE,
     OP_WHILE,
-    OP_BEGIN
+    OP_BEGIN,
+    OP_ARRAY_BEGIN,
+    OP_ARRAY_END
 } opcode;
 typedef struct
 {
     opcode code;
     stack_element arg, arg2;
 } operation;
+typedef struct op_node op_node;
+struct op_node
+{
+    operation val;
+    op_node *next;
+};
+
+typedef struct
+{
+    op_node *begin;
+    op_node *tail;
+    int size;
+    op_node **op_ptr;
+} program;

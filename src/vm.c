@@ -223,12 +223,11 @@ void exec_operation(operation op)
     else
         perror("not implemented");
 }
-void exec(operation program[], int size)
+void exec(program pr)
 {
-    while (idx < size)
+    while (idx < pr.size)
     {
-        exec_operation(program[idx]);
-        operation op = program[idx];
+        exec_operation((pr.op_ptr[idx])->val);
         idx++;
     }
 }
