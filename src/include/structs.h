@@ -45,6 +45,7 @@ typedef enum
 } opcode;
 typedef struct
 {
+    int id;
     opcode code;
     stack_element arg, arg2;
 } operation;

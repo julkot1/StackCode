@@ -11,6 +11,29 @@ char str_buffer[MAX_CONST_STRING_SIZE];
 unsigned short str_size = 0;
 int insert_str_buffer = -1;
 
+void analyze_code(program *pr)
+{
+    operation *op;
+    StackNode *root = malloc(sizeof(StackNode));
+    for (int i = 0; i < pr->size; i++)
+    {
+        op = &(pr->op_ptr[i]->val);
+        if (op->code == OP_IF || op->code == OP_BEGIN)
+            stack_push(&root, op);
+        else if (op->code == OP_END)
+        {
+            operation *op_match = stack_pop(&root);
+            if (op_match->code == OP_IF)
+            {
+                op_match->arg.val.number = op->id;
+                op_match->arg.type = NUMBER;
+
+                op->arg.type = NUMBER;
+                op->arg.val.number = -1;
+            }
+        }
+    }
+}
 program parse(char *buffer)
 {
     program pr;
@@ -19,6 +42,7 @@ program parse(char *buffer)
     pch = strtok(buffer, " ");
     op_node *node = malloc(sizeof(op_node));
     node->val = parse_token(pch);
+    node->val.id = 0;
     pr.begin = node;
     pr.tail = node;
     while (pch != NULL)
@@ -27,6 +51,7 @@ program parse(char *buffer)
 
         node = malloc(sizeof(op_node));
         node->val = parse_token(pch);
+        node->val.id = size + 1;
         if (insert_str_buffer == -1)
         {
             pr.tail->next = node;
@@ -45,6 +70,7 @@ program parse(char *buffer)
         tmp = tmp->next;
         index++;
     }
+    analyze_code(&pr);
     return pr;
 }
 

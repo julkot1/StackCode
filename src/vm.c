@@ -107,6 +107,7 @@ void eq()
     }
     else
         perror("not implemented");
+
     push(res);
 }
 void gt()
