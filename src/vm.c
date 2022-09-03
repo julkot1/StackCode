@@ -196,7 +196,7 @@ void exec_operation(operation op)
     }
     else if (op.code == OP_DUP)
     {
-        dup();
+        s_dup();
     }
     else if (op.code == OP_SUB)
         sub();

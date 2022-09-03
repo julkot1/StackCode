@@ -33,7 +33,7 @@ stack_element stack[STACK_SIZE];
 
 #ifndef STACK_DUP
 #define STACK_DUP
-#define dup() push(stack[ptr])
+#define s_dup() push(stack[ptr])
 #endif
 
 #ifndef STACK_OVER
