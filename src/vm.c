@@ -221,6 +221,9 @@ void exec_operation(operation op)
     else if (op.code == OP_BEGIN)
     {
     }
+    else if (op.code == OP_NONE)
+    {
+    }
     else
         perror("not implemented");
 }

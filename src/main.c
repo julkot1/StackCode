@@ -7,14 +7,18 @@
 #include <getopt.h>
 #include <stdio.h>
 #include "./include/cli.h"
+#include "./include/heap.h"
 
 int main(int argc, char **args)
 {
 
+    heap[0] = 'a';
     cli_res res = pass_args(argc, args);
+
     if (res.file == NULL)
     {
         printc(ColRed, "File not specified\n");
+        printf("%d", res.run);
         exit(EXIT_FAILURE);
     }
     else if (res.run == 1)
@@ -26,14 +30,9 @@ int main(int argc, char **args)
             exit(EXIT_FAILURE);
         }
 
-        fseek(fp, 0, SEEK_END);
-        long size = ftell(fp);
-        fseek(fp, 0, SEEK_SET);
-        char *code = malloc(size);
-        fread(code, 1, size, fp);
-        program pr = parse(code);
+        program pr = parse(fp);
         fclose(fp);
-        free(code);
+
         exec(pr);
     }
 

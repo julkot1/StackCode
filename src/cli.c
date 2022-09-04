@@ -26,6 +26,7 @@ cli_res pass_args(int argc, char **args)
 {
     cli_res res;
     res.argc = 0;
+    res.file = NULL;
     res.run = -1;
     const char *short_opt = ":hvr:";
     int c;

@@ -2,14 +2,11 @@
 #include "./include/parser.h"
 #include "./include/tokens.h"
 #include "./include/utils.h"
-
 #include <string.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
-
-char str_buffer[MAX_CONST_STRING_SIZE];
-unsigned short str_size = 0;
-int insert_str_buffer = -1;
+#include <ctype.h>
 
 void analyze_code(program *pr)
 {
@@ -34,31 +31,89 @@ void analyze_code(program *pr)
         }
     }
 }
-program parse(char *buffer)
+void node_push(op_node *node, program *pr)
+{
+    op_node **parent;
+    if (pr->size == 0)
+        parent = &pr->begin;
+    else
+        parent = &pr->tail;
+    node->val.id = pr->size + 1;
+    (*parent)->next = node;
+    *parent = node;
+    pr->size++;
+}
+program parse(FILE *fp)
 {
     program pr;
-    int size = 0;
-    char *pch;
-    pch = strtok(buffer, " ");
+    pr.size = 0;
+    int size = 0, token_index = 0, str_parse = false;
+    char c;
+    char token[256];
     op_node *node = malloc(sizeof(op_node));
-    node->val = parse_token(pch);
-    node->val.id = 0;
+    operation o = {0, OP_NONE};
+    node->val = o;
     pr.begin = node;
     pr.tail = node;
-    while (pch != NULL)
-    {
-        pch = strtok(NULL, " ");
 
-        node = malloc(sizeof(op_node));
-        node->val = parse_token(pch);
-        node->val.id = size + 1;
-        if (insert_str_buffer == -1)
+    while ((c = getc(fp)) != EOF)
+    {
+        if (c == TOKEN_STRING[0])
         {
+            if (str_parse == false)
+            {
+                str_parse = true;
+                continue;
+            }
+            node = malloc(sizeof(op_node));
+            token[token_index] = '\0';
+            node->val = parse_token(token);
+            node->val.id = size + 1;
             pr.tail->next = node;
             pr.tail = node;
             size++;
+            str_parse = false;
+            token_index = 0;
+            token[token_index] = '\0';
+            continue;
+        }
+        if (str_parse == true)
+        {
+            token[token_index] = c;
+            token_index++;
+            continue;
+        }
+        if (isspace(c) && token_index != 0)
+        {
+            token[token_index] = '\0';
+            node = malloc(sizeof(op_node));
+            node->val = parse_token(token);
+            node->val.id = size + 1;
+            pr.tail->next = node;
+            pr.tail = node;
+            size++;
+            token_index = 0;
+            token[token_index] = '\0';
+            continue;
+        }
+        if (!isspace(c))
+        {
+            token[token_index] = c;
+            token_index++;
         }
     }
+    if (token_index > 0)
+    {
+        token[token_index] = '\0';
+
+        node = malloc(sizeof(op_node));
+        node->val = parse_token(token);
+        node->val.id = size + 1;
+        pr.tail->next = node;
+        pr.tail = node;
+        size++;
+    }
+    size++;
     pr.size = size;
 
     pr.op_ptr = malloc(sizeof(op_node) * size);
@@ -70,7 +125,9 @@ program parse(char *buffer)
         tmp = tmp->next;
         index++;
     }
+
     analyze_code(&pr);
+
     return pr;
 }
 
@@ -78,56 +135,26 @@ operation parse_not_operation(const char *token)
 {
 
     operation op;
-    /*
-    if (insert_str_buffer == -1)
+
+    stack_element el;
+    op.code = OP_PUSH;
+    if (strcmp(token, TOKEN_TRUE) == 0)
     {
-        if (token[0] == TOKEN_STRING[0])
-        {
-            str_buffer[0] = '\0';
-            strcat(str_buffer, (token + 1));
-            str_size = strlen(token) - 1;
-            insert_str_buffer = 1;
-        }
-        return op;
+        el.type = BOOL;
+        el.val.number = 1;
     }
-    else if (insert_str_buffer == 0)
+    else if (strcmp(token, TOKEN_FALSE) == 0)
     {
-        if (ends_with(token, TOKEN_STRING) == 1 && ends_with(token, TOKEN_ESCAPE_STRING) != 1)
-        {
-            insert_str_buffer = -1;
-            strcat(str_buffer, token);
-            str_size += strlen(token) - 1;
-            str_buffer[str_size] = '\0';
-            printf("%s\n", str_buffer);
-        }
-        else
-        {
-            strcat(str_buffer, token);
-            str_size += strlen(token);
-        }
+        el.type = BOOL;
+        el.val.number = 0;
     }
     else
-    */
     {
-        stack_element el;
-        op.code = OP_PUSH;
-        if (strcmp(token, TOKEN_TRUE) == 0)
-        {
-            el.type = BOOL;
-            el.val.number = 1;
-        }
-        else if (strcmp(token, TOKEN_FALSE) == 0)
-        {
-            el.type = BOOL;
-            el.val.number = 0;
-        }
-        else
-        {
-            el.type = NUMBER;
-            el.val.number = atoi(token);
-        }
-        op.arg = el;
+        el.type = NUMBER;
+        el.val.number = atoi(token);
     }
+    op.arg = el;
+
     return op;
 }
 operation parse_token(const char *token)
