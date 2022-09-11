@@ -28,6 +28,19 @@ void analyze_code(program *pr)
                 op->arg.type = NUMBER;
                 op->arg.val.number = -1;
             }
+            else if (op_match->code == OP_WHILE)
+            {
+                op->arg.val.number = op_match->arg.val.number;
+                op->arg.type = NUMBER;
+                (&pr->op_ptr[op_match->id]->val)->arg.val.number = op->id + 1;
+            }
+        }
+        else if (op->code == OP_WHILE)
+        {
+            operation *op_begin = stack_pop(&root);
+            op->arg.type = NUMBER;
+            op->arg.val.number = op_begin->id;
+            stack_push(&root, op);
         }
     }
 }

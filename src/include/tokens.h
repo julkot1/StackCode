@@ -12,7 +12,7 @@
 #define TOKEN_EQ "="
 #define TOKEN_N_EQ "!="
 #define TOKEN_GT ">"
-#define TOKEN_LW "<"
+#define TOKEN_LT "<"
 #define TOKEN_GT_E ">="
 #define TOKEN_LW_E "<="
 #define TOKEN_POP "pop"

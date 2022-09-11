@@ -124,6 +124,20 @@ void gt()
         perror("not implemented");
     push(res);
 }
+void lt()
+{
+    stack_element a = pop();
+    stack_element b = pop();
+    stack_element res;
+    if (a.type == NUMBER && b.type == NUMBER)
+    {
+        res.type = BOOL;
+        res.val.number = a.val.number < b.val.number;
+    }
+    else
+        perror("not implemented");
+    push(res);
+}
 void print()
 {
 
@@ -164,7 +178,7 @@ void exec_while(operation op)
         exit(EXIT_FAILURE);
     }
     if (a.val.number == 0)
-        idx = op.arg.val.number + 1;
+        idx = op.arg.val.number;
 }
 void exec_else(operation op)
 {
@@ -210,6 +224,8 @@ void exec_operation(operation op)
         eq();
     else if (op.code == OP_GT)
         gt();
+    else if (op.code == OP_LT)
+        lt();
     else if (op.code == OP_PRINT)
         print();
     else if (op.code == OP_IF)

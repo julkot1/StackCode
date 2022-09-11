@@ -11,8 +11,6 @@
 
 int main(int argc, char **args)
 {
-
-    heap[0] = 'a';
     cli_res res = pass_args(argc, args);
 
     if (res.file == NULL)

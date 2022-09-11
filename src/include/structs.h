@@ -42,6 +42,7 @@ typedef enum
     OP_BEGIN,
     OP_ARRAY_BEGIN,
     OP_ARRAY_END,
+    OP_LT,
     OP_NONE
 } opcode;
 typedef struct

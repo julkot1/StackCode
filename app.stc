@@ -1,3 +1,6 @@
-10 10 = if
-    5 echo
-end 
+0
+begin dup 10 > while
+    dup echo
+    1 +
+end
+1
