@@ -7,7 +7,6 @@
 #include <getopt.h>
 #include <stdio.h>
 #include "./include/cli.h"
-#include "./include/heap.h"
 
 int main(int argc, char **args)
 {
@@ -15,7 +14,7 @@ int main(int argc, char **args)
 
     if (res.file == NULL)
     {
-        printc(ColRed, "File not specified\n");
+        printc(ColRed, "File is not specified\n");
         printf("%d", res.run);
         exit(EXIT_FAILURE);
     }
@@ -24,7 +23,7 @@ int main(int argc, char **args)
         FILE *fp = fopen(res.file, "r");
         if (fp == NULL)
         {
-            printc(ColRed, "File don't exist\n");
+            printc(ColRed, "File does not exist\n");
             exit(EXIT_FAILURE);
         }
 

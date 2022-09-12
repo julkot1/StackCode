@@ -13,9 +13,9 @@ void print_help()
 {
     printf("\nUsage: \n \tsc [options] [arguments]\n");
     printf("\nOptions: \n");
-    printf("\t--help              Display this information.\n");
-    printf("\t--version           Display StackCode installed version.\n");
-    printf("\t--run file [args]   Run specified file.\n");
+    printf("\t-help              Display this information.\n");
+    printf("\t-version           Display StackCode installed version.\n");
+    printf("\t-run file [args]   Run specified file.\n");
 }
 void print_version()
 {

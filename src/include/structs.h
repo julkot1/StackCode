@@ -20,6 +20,15 @@ typedef struct
     value val;
     types type;
 } stack_element;
+
+typedef struct
+{
+    char *name;
+    value val;
+    types type;
+
+} variable;
+
 typedef enum
 {
     OP_PUSH,
