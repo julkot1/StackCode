@@ -7,6 +7,7 @@ int var_compare(const void *a, const void *b, void *udata)
     const variable *b_var = b;
     return strcmp(a_var->name, b_var->name);
 }
+
 uint64_t var_hash(const void *item, uint64_t seed0, uint64_t seed1)
 {
     const variable *var = item;

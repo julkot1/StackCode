@@ -1,8 +1,10 @@
 #include "./include/vm.h"
+#include "./include/hashmap.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
 #include <errno.h>
+#include <stdbool.h>
 #include <string.h>
 
 #ifndef STACK_PTR
@@ -15,6 +17,11 @@ unsigned int ptr = -1;
 int idx = 0;
 #endif
 
+#ifndef ENV_VAR_ASSIGMENT
+#define ENV_VAR_ASSIGMENT
+int is_assigment = false;
+#endif
+struct hashmap *globalss;
 void add()
 {
     stack_element a = pop();
@@ -191,12 +198,59 @@ void exec_else(operation op)
     if (a.val.number == 0)
         idx = op.arg.val.number;
 }
+void let()
+{
+    if (is_assigment == true)
+    {
+        perror("invalid variable assigment structure");
+        exit(EXIT_FAILURE);
+    }
+    is_assigment = true;
+}
 
+void assign_var(stack_element el)
+{
+    is_assigment = false;
+    stack_element a = pop();
+    if (el.type != VAR)
+    {
+        perror("invalid variable assigment structure");
+        exit(EXIT_FAILURE);
+    }
+    variable var;
+
+    strcpy(var.name, el.val.str);
+    var.type = a.type;
+    var.val = a.val;
+    hashmap_set(globals, &var);
+}
+void push_var(stack_element arg)
+{
+    variable key;
+    strcpy(key.name, arg.val.str);
+    variable *var = hashmap_get(globals, &key);
+    if (var == NULL)
+    {
+        perror("variable is not declarated");
+        exit(EXIT_FAILURE);
+    }
+    push(((stack_element){.type = var->type, .val = var->val}));
+}
 void exec_operation(operation op)
 {
+    if (is_assigment == true && op.code != OP_PUSH)
+    {
+        perror("invalid variable assigment structure");
+        exit(EXIT_FAILURE);
+    }
     if (op.code == OP_PUSH)
     {
-        push(op.arg);
+        if (is_assigment == true)
+            assign_var(op.arg);
+        else if (op.arg.type == VAR)
+            push_var(op.arg);
+        else
+            push(op.arg);
     }
     else if (op.code == OP_POP)
     {
@@ -235,19 +289,21 @@ void exec_operation(operation op)
     else if (op.code == OP_WHILE)
         exec_while(op);
     else if (op.code == OP_BEGIN)
-    {
-    }
+        ;
     else if (op.code == OP_NONE)
-    {
-    }
+        ;
+    else if (op.code == OP_LET)
+        let();
     else
         perror("not implemented");
 }
 void exec(program pr)
 {
+    init_env();
     while (idx < pr.size)
     {
         exec_operation((pr.op_ptr[idx])->val);
         idx++;
     }
+    free_env();
 }

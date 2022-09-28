@@ -1,5 +1,6 @@
-0
-begin dup 10 > while
-    dup echo
-    1 +
-end
+10 let max
+85 let x
+x echo
+max echo
+7 let max
+max echo

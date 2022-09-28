@@ -1,5 +1,6 @@
 #pragma once
 #include "structs.h"
+#include "env.h"
 
 #define type_pair(a, b, t1, t2) ((a.type == t1 && b.type == t2) || (a.type == t2 && b.type == t1))
 

@@ -5,6 +5,7 @@ typedef enum
     STRING,
     ARRAY,
     BOOL,
+    VAR,
     CHAR
 } types;
 typedef union
@@ -13,6 +14,7 @@ typedef union
     char ch;
     char *str;
     void *arr;
+
 } value;
 
 typedef struct
@@ -23,7 +25,7 @@ typedef struct
 
 typedef struct
 {
-    char *name;
+    char name[32];
     value val;
     types type;
 
@@ -44,6 +46,7 @@ typedef enum
     OP_GT,
     OP_PRINT,
     OP_IF,
+    OP_LET,
     OP_END,
     OP_OVER,
     OP_ELSE,

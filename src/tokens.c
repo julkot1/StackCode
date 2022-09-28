@@ -46,5 +46,7 @@ int str_to_token(const char *str)
         return OP_ARRAY_END;
     else if (strcmp(str, TOKEN_EQ) == 0)
         return OP_EQ;
+    else if (strcmp(str, TOKEN_LET) == 0)
+        return OP_LET;
     return -1;
 }

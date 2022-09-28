@@ -151,6 +151,7 @@ operation parse_not_operation(const char *token)
 
     stack_element el;
     op.code = OP_PUSH;
+    int number;
     if (strcmp(token, TOKEN_TRUE) == 0)
     {
         el.type = BOOL;
@@ -160,6 +161,12 @@ operation parse_not_operation(const char *token)
     {
         el.type = BOOL;
         el.val.number = 0;
+    }
+    else if ((number = atoi(token)) == 0 && token[0] != '0')
+    {
+        el.type = VAR;
+        el.val.str = malloc(sizeof(char) * MAX_VAR_SIZE);
+        strcpy(el.val.str, token);
     }
     else
     {
