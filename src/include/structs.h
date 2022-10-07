@@ -1,4 +1,6 @@
 #pragma once
+#include <stdbool.h>
+
 typedef enum
 {
     NUMBER,
@@ -6,14 +8,22 @@ typedef enum
     ARRAY,
     BOOL,
     VAR,
+    OBJ,
     CHAR
 } types;
+
+typedef struct
+{
+    int begin, end, step, current;
+    bool started;
+} iterator;
+
 typedef union
 {
     int number;
     char ch;
     char *str;
-    void *arr;
+    void *ptr;
 
 } value;
 
@@ -52,6 +62,7 @@ typedef enum
     OP_ELSE,
     OP_WHILE,
     OP_BEGIN,
+    OP_ITER,
     OP_ARRAY_BEGIN,
     OP_ARRAY_END,
     OP_LT,
@@ -62,6 +73,7 @@ typedef struct
     int id;
     opcode code;
     stack_element arg, arg2;
+    iterator it;
 } operation;
 typedef struct op_node op_node;
 struct op_node

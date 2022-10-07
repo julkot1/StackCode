@@ -54,5 +54,5 @@ void exec_if(operation op);
 void exec_end(operation op);
 void exec_while(operation op);
 void exec_else(operation op);
-void exec_operation(operation op);
+void exec_operation(operation *op);
 void exec(program pr);

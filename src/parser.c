@@ -15,7 +15,7 @@ void analyze_code(program *pr)
     for (int i = 0; i < pr->size; i++)
     {
         op = &(pr->op_ptr[i]->val);
-        if (op->code == OP_IF || op->code == OP_BEGIN)
+        if (op->code == OP_IF || op->code == OP_BEGIN || op->code == OP_ITER)
             stack_push(&root, op);
         else if (op->code == OP_END)
         {
@@ -27,6 +27,22 @@ void analyze_code(program *pr)
 
                 op->arg.type = NUMBER;
                 op->arg.val.number = -1;
+            }
+            else if (op_match->code == OP_ITER)
+            {
+                op_match->arg.val.number = op->id;
+                op_match->arg.type = NUMBER;
+
+                op_match->arg2.type = OBJ;
+                op_match->it = (iterator){
+                    .begin = 0,
+                    .end = 0,
+                    .step = 0,
+                    .current = 0,
+                    .started = false};
+
+                op->arg.val.number = op_match->id - 1;
+                op->arg.type = NUMBER;
             }
             else if (op_match->code == OP_WHILE)
             {
@@ -60,7 +76,7 @@ program parse(FILE *fp)
 {
     program pr;
     pr.size = 0;
-    int size = 0, token_index = 0, str_parse = false;
+    int size = 0, token_index = 0, str_parse = false, escape = false;
     char c;
     char token[256];
     op_node *node = malloc(sizeof(op_node));
@@ -80,7 +96,11 @@ program parse(FILE *fp)
             }
             node = malloc(sizeof(op_node));
             token[token_index] = '\0';
-            node->val = parse_token(token);
+            stack_element el;
+            el.type = STRING;
+            el.val.str = malloc(strlen(token) * sizeof(char));
+            strcpy(el.val.str, token);
+            node->val = (operation){.code = OP_PUSH, .arg = el};
             node->val.id = size + 1;
             pr.tail->next = node;
             pr.tail = node;

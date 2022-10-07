@@ -20,6 +20,8 @@ int str_to_token(const char *str)
         return OP_BEGIN;
     else if (strcmp(str, TOKEN_IF) == 0)
         return OP_IF;
+    else if (strcmp(str, TOKEN_ITER) == 0)
+        return OP_ITER;
     else if (strcmp(str, TOKEN_LT) == 0)
         return OP_LT;
     else if (strcmp(str, TOKEN_GT) == 0)
