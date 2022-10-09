@@ -50,5 +50,7 @@ int str_to_token(const char *str)
         return OP_EQ;
     else if (strcmp(str, TOKEN_LET) == 0)
         return OP_LET;
+    else if (strcmp(str, TOKEN_PUT) == 0)
+        return OP_PUT;
     return -1;
 }

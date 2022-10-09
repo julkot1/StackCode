@@ -25,6 +25,7 @@
 #define TOKEN_BEGIN "begin"
 #define TOKEN_WHILE "while"
 #define TOKEN_END "end"
+#define TOKEN_PUT "put"
 #define TOKEN_ITER "iter"
 #define TOKEN_PRINT "echo"
 #define TOKEN_STRING "\""

@@ -20,7 +20,7 @@ typedef struct
 
 typedef union
 {
-    int number;
+    long number;
     char ch;
     char *str;
     void *ptr;
@@ -55,6 +55,7 @@ typedef enum
     OP_EQ,
     OP_GT,
     OP_PRINT,
+    OP_PUT,
     OP_IF,
     OP_LET,
     OP_END,

@@ -59,6 +59,12 @@ void add()
                 sprintf(res.val.str, "%s%d", a.val.str, b.val.number);
             res.type = STRING;
         }
+        else if (a.type == STRING && b.type == STRING)
+        {
+            res.val.str = malloc(strlen(a.val.str) + strlen(b.val.str));
+            sprintf(res.val.str, "%s%s", b.val.str, a.val.str);
+            res.type = STRING;
+        }
     }
     else
         perror("not implemented");
@@ -72,7 +78,7 @@ void sub()
     if (a.type == NUMBER && b.type == NUMBER)
     {
         res.type = NUMBER;
-        res.val.number = a.val.number - b.val.number;
+        res.val.number = b.val.number - a.val.number;
     }
     else
         perror("not implemented");
@@ -121,6 +127,17 @@ void mul()
         res.type = NUMBER;
         res.val.number = a.val.number * b.val.number;
     }
+    else if (a.type == NUMBER && b.type == STRING)
+    {
+        int str_size = strlen(b.val.str);
+        res.val.str = malloc(str_size * a.val.number + 1);
+        for (int i = 0; i < str_size * a.val.number; i++)
+        {
+            res.val.str[i] = b.val.str[i % str_size];
+        }
+        res.val.str[str_size * a.val.number] = '\0';
+        res.type = STRING;
+    }
     else
         perror("not implemented");
     push(res);
@@ -168,9 +185,8 @@ void lt()
         perror("not implemented");
     push(res);
 }
-void print()
+void vm_put()
 {
-
     stack_element a = pop();
     if (a.type == NUMBER)
     {
@@ -183,6 +199,12 @@ void print()
     else if (a.type == STRING)
         puts(a.val.str);
 }
+void print()
+{
+    vm_put();
+    puts("");
+}
+
 void exec_if(operation op)
 {
     stack_element a = pop();
@@ -336,6 +358,8 @@ void exec_operation(operation *op)
         exec_while(*op);
     else if (op->code == OP_ITER)
         exec_iter(op);
+    else if (op->code == OP_PUT)
+        vm_put();
     else if (op->code == OP_BEGIN)
         ;
     else if (op->code == OP_NONE)

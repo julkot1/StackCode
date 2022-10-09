@@ -72,6 +72,24 @@ void node_push(op_node *node, program *pr)
     *parent = node;
     pr->size++;
 }
+char getSpecialChar(char c)
+{
+    if (c == 'a')
+        return '\a';
+    if (c == 'b')
+        return '\b';
+    if (c == 'e')
+        return '\e';
+    if (c == 'f')
+        return '\f';
+    if (c == 'n')
+        return '\n';
+    if (c == 'r')
+        return '\r';
+    if (c == 'v')
+        return '\v';
+    return ' ';
+}
 program parse(FILE *fp)
 {
     program pr;
@@ -79,6 +97,7 @@ program parse(FILE *fp)
     int size = 0, token_index = 0, str_parse = false, escape = false;
     char c;
     char token[256];
+    bool special_char = false;
     op_node *node = malloc(sizeof(op_node));
     operation o = {0, OP_NONE};
     node->val = o;
@@ -112,8 +131,30 @@ program parse(FILE *fp)
         }
         if (str_parse == true)
         {
-            token[token_index] = c;
-            token_index++;
+            if (c == '\\')
+            {
+                if (special_char)
+                {
+                    token[token_index] = c;
+                    token_index++;
+                    special_char = false;
+                    continue;
+                }
+                else
+                    special_char = true;
+            }
+            else if (special_char)
+            {
+                token[token_index] = getSpecialChar(c);
+                token_index++;
+                special_char = false;
+                continue;
+            }
+            else
+            {
+                token[token_index] = c;
+                token_index++;
+            }
             continue;
         }
         if (isspace(c) && token_index != 0)

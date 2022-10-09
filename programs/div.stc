@@ -1,0 +1,9 @@
+1
+1 50000000 1 
+iter 
+  dup 50000000 % 0 = 
+  if
+    dup echo
+  end
+  1 +
+end
