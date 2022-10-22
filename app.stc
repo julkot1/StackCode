@@ -1,6 +1,9 @@
-1
-1 10 1
-iter
-  dup "*" swap * put
-  1 +
+max 10 :=
+1 max 1 
+iter 
+  dup max % 0 = 
+  if
+    dup echo
+  end
+  pop
 end

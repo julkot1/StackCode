@@ -225,7 +225,7 @@ operation parse_not_operation(const char *token)
     }
     else if ((number = atoi(token)) == 0 && token[0] != '0')
     {
-        el.type = VAR;
+        el.type = VAR_EMPTY;
         el.val.str = malloc(sizeof(char) * MAX_VAR_SIZE);
         strcpy(el.val.str, token);
     }

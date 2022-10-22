@@ -3,8 +3,18 @@
 #include <stdint.h>
 #include <string.h>
 #include "structs.h"
-int var_compare(const void *a, const void *b, void *udata);
-uint64_t var_hash(const void *item, uint64_t seed0, uint64_t seed1);
+#include <search.h>
+
+#define MAX_VAR 4096
+#define ALLOCATOR_MAX_SIZE 1048576
+
+variable *alloc(variable var);
+void del(variable *ptr);
+
 void init_env();
-extern struct hashmap *globals;
 void free_env();
+
+variable *sotore_var(variable var);
+variable *get_var(const char *name);
+int has_var(const char *name);
+void free_var(const char *name);

@@ -12,7 +12,7 @@
 #define TOKEN_EQ "="
 #define TOKEN_N_EQ "!="
 #define TOKEN_GT ">"
-#define TOKEN_LET "let"
+#define TOKEN_LET ":="
 #define TOKEN_LT "<"
 #define TOKEN_GT_E ">="
 #define TOKEN_LW_E "<="
@@ -35,5 +35,6 @@
 #define TOKEN_TRUE "true"
 #define TOKEN_FALSE "false"
 int str_to_token(const char *str);
+char *token_to_string(opcode op);
 int has_ending_token(opcode code);
 int has_begining_token(opcode code);

@@ -6,12 +6,13 @@
 #include <unistd.h>
 #include <getopt.h>
 #include <stdio.h>
+#include "./include/env.h"
 #include "./include/cli.h"
 
 int main(int argc, char **args)
 {
-    cli_res res = pass_args(argc, args);
 
+    cli_res res = pass_args(argc, args);
     if (res.file == NULL)
     {
         printc(ColRed, "File is not specified\n");

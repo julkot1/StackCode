@@ -1,11 +1,13 @@
 #include "./include/vm.h"
-#include "./include/hashmap.h"
+#include "./include/tokens.h"
+#include "include/structs.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
 #include <errno.h>
 #include <stdbool.h>
 #include <string.h>
+#include <search.h>
 
 #ifndef STACK_PTR
 #define STACK
@@ -17,11 +19,6 @@ unsigned int ptr = -1;
 int idx = 0;
 #endif
 
-#ifndef ENV_VAR_ASSIGMENT
-#define ENV_VAR_ASSIGMENT
-int is_assigment = false;
-#endif
-struct hashmap *globalss;
 void add()
 {
     stack_element a = pop();
@@ -67,7 +64,7 @@ void add()
         }
     }
     else
-        perror("not implemented");
+        perror("not implemented add");
     push(res);
 }
 void sub()
@@ -81,7 +78,7 @@ void sub()
         res.val.number = b.val.number - a.val.number;
     }
     else
-        perror("not implemented");
+        perror("not implemented sub");
     push(res);
 }
 void mod()
@@ -95,7 +92,7 @@ void mod()
         res.val.number = a.val.number % b.val.number;
     }
     else
-        perror("not implemented");
+        perror("not implemented mod");
     push(res);
 }
 void exec_div()
@@ -114,7 +111,7 @@ void exec_div()
         res.val.number = a.val.number / b.val.number;
     }
     else
-        perror("not implemented");
+        perror("not implemented div");
     push(res);
 }
 void mul()
@@ -139,7 +136,7 @@ void mul()
         res.type = STRING;
     }
     else
-        perror("not implemented");
+        perror("not implemented mul");
     push(res);
 }
 void eq()
@@ -153,7 +150,7 @@ void eq()
         res.val.number = a.val.number == b.val.number;
     }
     else
-        perror("not implemented");
+        perror("not implemented eq");
 
     push(res);
 }
@@ -168,7 +165,7 @@ void gt()
         res.val.number = a.val.number > b.val.number;
     }
     else
-        perror("not implemented");
+        perror("not implemented gt");
     push(res);
 }
 void lt()
@@ -182,7 +179,7 @@ void lt()
         res.val.number = a.val.number < b.val.number;
     }
     else
-        perror("not implemented");
+        perror("not implemented lt");
     push(res);
 }
 void vm_put()
@@ -193,11 +190,11 @@ void vm_put()
         printf("%d", a.val.number);
     }
     else if (a.type == BOOL)
-        puts(a.val.ch == 0 ? "false" : "true");
+        printf("%s", a.val.ch == 0 ? "false" : "true");
     else if (a.type == CHAR)
         putchar(a.val.ch);
     else if (a.type == STRING)
-        puts(a.val.str);
+        printf("%s", a.val.str);
 }
 void print()
 {
@@ -253,7 +250,11 @@ void exec_iter(operation *op)
         idx = op->arg.val.number;
     }
     else
+    {
+        stack_element el = {.val.number = it->current, .type = NUMBER};
+        push(el);
         it->current += it->step;
+    }
 }
 void exec_else(operation op)
 {
@@ -268,55 +269,50 @@ void exec_else(operation op)
 }
 void let()
 {
-    if (is_assigment == true)
+    stack_element val = pop();
+    stack_element var_el = pop();
+    if (var_el.type != VAR)
     {
-        perror("invalid variable assigment structure");
+        perror("can not create var\n");
         exit(EXIT_FAILURE);
     }
-    is_assigment = true;
+    variable *var_ptr = (variable *)var_el.val.ptr;
+    var_ptr->type = val.type;
+    var_ptr->val = val.val;
 }
 
-void assign_var(stack_element el)
+void push_var(operation **op)
 {
-    is_assigment = false;
-    stack_element a = pop();
-    if (el.type != VAR)
-    {
-        perror("invalid variable assigment structure");
-        exit(EXIT_FAILURE);
-    }
     variable var;
-
-    strcpy(var.name, el.val.str);
-    var.type = a.type;
-    var.val = a.val;
-    hashmap_set(globals, &var);
-}
-void push_var(stack_element arg)
-{
-    variable key;
-    strcpy(key.name, arg.val.str);
-    variable *var = hashmap_get(globals, &key);
-    if (var == NULL)
+    if ((*op)->arg.type == VAR_EMPTY)
     {
-        perror("variable is not declarated");
-        exit(EXIT_FAILURE);
+        variable *var_ptr = get_var((*op)->arg.val.str);
+        if (var_ptr == NULL)
+        {
+            strcpy(var.name, ((*op)->arg.val.str));
+            var_ptr = sotore_var(var);
+            (*op)->arg.type = VAR;
+            (*op)->arg.val.ptr = var_ptr;
+            stack_element el = {.type = VAR, .val.ptr = var_ptr};
+            push(el);
+            return;
+        }
+        var = *var_ptr;
     }
-    push(((stack_element){.type = var->type, .val = var->val}));
+    else
+    {
+        var = *((variable *)(*op)->arg.val.ptr);
+    }
+    stack_element el = {.type = var.type, .val = var.val};
+    push(el);
 }
 void exec_operation(operation *op)
 {
-    if (is_assigment == true && op->code != OP_PUSH)
-    {
-        perror("invalid variable assigment structure");
-        exit(EXIT_FAILURE);
-    }
+
     if (op->code == OP_PUSH)
     {
-        if (is_assigment == true)
-            assign_var(op->arg);
-        else if (op->arg.type == VAR)
-            push_var(op->arg);
+        if (op->arg.type == VAR || op->arg.type == VAR_EMPTY)
+            push_var(&op);
         else
             push(op->arg);
     }
@@ -333,6 +329,10 @@ void exec_operation(operation *op)
     else if (op->code == OP_DUP)
     {
         s_dup();
+    }
+    else if (op->code == OP_OVER)
+    {
+        over();
     }
     else if (op->code == OP_SUB)
         sub();
@@ -367,7 +367,10 @@ void exec_operation(operation *op)
     else if (op->code == OP_LET)
         let();
     else
-        perror("not implemented");
+    {
+        perror("not implemented: ");
+        perror(token_to_string(op->code));
+    }
 }
 void exec(program pr)
 {

@@ -8,6 +8,7 @@ typedef enum
     ARRAY,
     BOOL,
     VAR,
+    VAR_EMPTY,
     OBJ,
     CHAR
 } types;
@@ -18,6 +19,7 @@ typedef struct
     bool started;
 } iterator;
 
+// max size 8 bytes
 typedef union
 {
     long number;
@@ -35,7 +37,7 @@ typedef struct
 
 typedef struct
 {
-    char name[32];
+    char *name;
     value val;
     types type;
 
