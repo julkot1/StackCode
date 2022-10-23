@@ -281,27 +281,29 @@ void let()
     var_ptr->val = val.val;
 }
 
-void push_var(operation **op)
+void push_var(operation *op)
 {
     variable var;
-    if ((*op)->arg.type == VAR_EMPTY)
+    if (op->arg.type == VAR_EMPTY)
     {
-        variable *var_ptr = get_var((*op)->arg.val.str);
+        variable *var_ptr = get_var(op->arg.val.str);
         if (var_ptr == NULL)
         {
-            strcpy(var.name, ((*op)->arg.val.str));
+            strcpy(var.name, (op->arg.val.str));
             var_ptr = sotore_var(var);
-            (*op)->arg.type = VAR;
-            (*op)->arg.val.ptr = var_ptr;
+
             stack_element el = {.type = VAR, .val.ptr = var_ptr};
             push(el);
             return;
         }
         var = *var_ptr;
+        stack_element *el_arg = &op->arg;
+        el_arg->type = VAR;
+        el_arg->val.ptr = var_ptr;
     }
     else
     {
-        var = *((variable *)(*op)->arg.val.ptr);
+        var = *((variable *)op->arg.val.ptr);
     }
     stack_element el = {.type = var.type, .val = var.val};
     push(el);
@@ -312,7 +314,7 @@ void exec_operation(operation *op)
     if (op->code == OP_PUSH)
     {
         if (op->arg.type == VAR || op->arg.type == VAR_EMPTY)
-            push_var(&op);
+            push_var(op);
         else
             push(op->arg);
     }

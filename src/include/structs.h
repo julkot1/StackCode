@@ -71,14 +71,16 @@ typedef enum
     OP_LT,
     OP_NONE
 } opcode;
+typedef struct op_node op_node;
 typedef struct
 {
     int id;
     opcode code;
     stack_element arg, arg2;
     iterator it;
+    op_node *node;
 } operation;
-typedef struct op_node op_node;
+
 struct op_node
 {
     operation val;

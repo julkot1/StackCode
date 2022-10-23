@@ -121,6 +121,7 @@ program parse(FILE *fp)
             strcpy(el.val.str, token);
             node->val = (operation){.code = OP_PUSH, .arg = el};
             node->val.id = size + 1;
+            node->val.node = node;
             pr.tail->next = node;
             pr.tail = node;
             size++;
@@ -163,6 +164,7 @@ program parse(FILE *fp)
             node = malloc(sizeof(op_node));
             node->val = parse_token(token);
             node->val.id = size + 1;
+            node->val.node = node;
             pr.tail->next = node;
             pr.tail = node;
             size++;
@@ -183,6 +185,7 @@ program parse(FILE *fp)
         node = malloc(sizeof(op_node));
         node->val = parse_token(token);
         node->val.id = size + 1;
+        node->val.node = node;
         pr.tail->next = node;
         pr.tail = node;
         size++;
