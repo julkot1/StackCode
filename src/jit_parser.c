@@ -22,6 +22,7 @@ void init(program *__pr)
     jit_init();
     context = jit_context_create();
     GLOBAL_F = jit_function_create(context, jit_type_create_signature(jit_abi_cdecl, jit_type_int, NULL, 0, 1));
+    init_native(__pr);
     types_init();
     stack_init(__pr);
     labels_init(__pr);
@@ -191,6 +192,22 @@ void op_native_2(native_function native_f)
         GLOBAL_F, native_names[native_f.name], native_f.function, native_f.signature, args, native_f.args, JIT_CALL_NOTHROW);
     push_vm(res);
 }
+void op_vload(operation op, program *__pr)
+{
+    jit_value_t index = CONST_INT(op.payload.number);
+    jit_value_t args[] = {index};
+    jit_value_t res = jit_insn_call_native(
+        GLOBAL_F, "vload", native_vload, native_vload_signature, args, 1, JIT_CALL_NOTHROW);
+    push_vm(res);
+}
+void op_vstore(operation op, program *__pr)
+{
+    jit_value_t element = op_pop();
+    jit_value_t index = CONST_INT(op.payload.number);
+    jit_value_t args[] = {element, index};
+    jit_insn_call_native(
+        GLOBAL_F, "vstore", native_vstore, native_vstore_signature, args, 2, JIT_CALL_NOTHROW);
+}
 void parse(operation op, program *__pr)
 {
     switch (op.code)
@@ -222,6 +239,12 @@ void parse(operation op, program *__pr)
         break;
     case BIN_JMP_IF_NOT:
         op_jmp_if_not(op, __pr->labels);
+        break;
+    case BIN_VLOAD:
+        op_vload(op, __pr);
+        break;
+    case BIN_VSTORE:
+        op_vstore(op, __pr);
         break;
     default:
         op_native(native_functions[op.code]);

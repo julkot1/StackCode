@@ -9,7 +9,8 @@
 
 #define TOKEN_DATA_STACK_SIZE ".stack_size"
 #define TOKEN_DATA_LABELS ".labels"
-#define TOKEN_DATA_CONST_SIZE ".const_pool"
+#define TOKEN_DATA_CONST_SIZE ".const_pool_size"
+#define TOKEN_DATA_VAR_SIZE ".var_pool_size"
 
 #define TOKEN_PUSH "push"
 #define TOKEN_ADD "add"
@@ -30,9 +31,9 @@
 #define TOKEN_NOT_EQUAL "neq"
 #define TOKEN_OR "or"
 #define TOKEN_AND "and"
-#define TOKEN_GRATER "gr"
+#define TOKEN_GREATER "gr"
 #define TOKEN_LOWER "lt"
-#define TOKEN_GRATER_OR_EQUAL "ge"
+#define TOKEN_GREATER_OR_EQUAL "ge"
 #define TOKEN_LOWER_OR_EQUAL "le"
 #define TOKEN_BITWISE_AND "band"
 #define TOKEN_BITWISE_OR "bor"
@@ -43,9 +44,11 @@
 #define TOKEN_TYPEOF "typeof"
 #define TOKEN_SIZEOF "sizeof"
 #define TOKEN_EOP "eop"
+#define TOKEN_VLOAD "vld"
+#define TOKEN_VSTORE "vst"
 
-#define TOKEN_CONST_POOL_MEMBER '$'
-#define TOKEN_VAR_POOL_MEMBER '@'
+#define TOKEN_CONST_POOL_ELEMENT '$'
+#define TOKEN_VAR_POOL_ELEMENT '*'
 
 typedef enum
 {

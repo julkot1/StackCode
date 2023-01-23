@@ -80,6 +80,13 @@ void parse_data_value(const char *name, const char *val, program *pr)
         pr->meta.labels_size = atoi(val);
     else if (strcmp(name, TOKEN_DATA_STACK_SIZE) == 0)
         pr->meta.stack_size = atoi(val);
+    else if (strcmp(name, TOKEN_DATA_CONST_SIZE) == 0)
+        pr->meta.const_pool_size = atoi(val);
+    else if (strcmp(name, TOKEN_DATA_VAR_SIZE) == 0)
+    {
+        pr->meta.var_pool_size = atoi(val);
+        pr->var_pool.elements = malloc(sizeof(pool_element) * pr->meta.var_pool_size);
+    }
 }
 void parse_global(FILE *fd, program *pr)
 {
@@ -117,11 +124,15 @@ operation parse_operation(char *line, program *pr)
     if (is_payload_operation(op.code))
     {
         char *payload = strtok(NULL, "\n");
-
-        if (payload[0] == TOKEN_CONST_POOL_MEMBER)
+        if (payload[0] == TOKEN_CONST_POOL_ELEMENT)
         {
             op.payload_type = PTR;
             op.payload.ptr = &(pr->const_pool.elements[atoi(payload + 1)]);
+        }
+        else if (payload[0] == TOKEN_VAR_POOL_ELEMENT)
+        {
+            op.payload_type = PTR;
+            op.payload.number = atoi(payload + 1);
         }
         else
         {
@@ -141,7 +152,7 @@ char *opcode_str(char *str)
 }
 int is_payload_operation(opcode op)
 {
-    return op == BIN_PUSH || op == BIN_LABEL || op == BIN_JMP || op == BIN_JMP_IF || op == BIN_JMP_IF_NOT;
+    return op == BIN_PUSH || op == BIN_LABEL || op == BIN_JMP || op == BIN_JMP_IF || op == BIN_JMP_IF_NOT || op == BIN_VSTORE || op == BIN_VLOAD;
 }
 opcode str_to_opcode(const char *str)
 {
@@ -181,12 +192,12 @@ opcode str_to_opcode(const char *str)
         return BIN_OR;
     else if (strcmp(str, TOKEN_AND) == 0)
         return BIN_AND;
-    else if (strcmp(str, TOKEN_GRATER) == 0)
-        return BIN_GRATER;
+    else if (strcmp(str, TOKEN_GREATER) == 0)
+        return BIN_GREATER;
     else if (strcmp(str, TOKEN_LOWER) == 0)
         return BIN_LOWER;
-    else if (strcmp(str, TOKEN_GRATER_OR_EQUAL) == 0)
-        return BIN_GRATER_OR_EQUAL;
+    else if (strcmp(str, TOKEN_GREATER_OR_EQUAL) == 0)
+        return BIN_GREATER_OR_EQUAL;
     else if (strcmp(str, TOKEN_LOWER_OR_EQUAL) == 0)
         return BIN_LOWER_OR_EQUAL;
     else if (strcmp(str, TOKEN_BITWISE_AND) == 0)
@@ -209,5 +220,9 @@ opcode str_to_opcode(const char *str)
         return BIN_MOD;
     else if (strcmp(str, TOKEN_SIZEOF) == 0)
         return BIN_SIZEOF;
+    else if (strcmp(str, TOKEN_VLOAD) == 0)
+        return BIN_VLOAD;
+    else if (strcmp(str, TOKEN_VSTORE) == 0)
+        return BIN_VSTORE;
     return BIN_EOP;
 }

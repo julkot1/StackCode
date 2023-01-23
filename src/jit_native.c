@@ -8,7 +8,14 @@ jit_uint stack_element_size;
 jit_type_t stack_element_value;
 jit_uint stack_element_value_size;
 native_function native_functions[1024];
+program *pr;
+jit_type_t native_vstore_signature;
+jit_type_t native_vload_signature;
 char *native_names[1024];
+void init_native(program *__pr)
+{
+    pr = __pr;
+}
 native_function create_two_args_function(function_ptr fptr, opcode code)
 {
     jit_type_t params[] = {stack_element, stack_element};
@@ -16,7 +23,7 @@ native_function create_two_args_function(function_ptr fptr, opcode code)
     native_f.signature = jit_type_create_signature(jit_abi_cdecl, stack_element, params, 2, 1);
     return native_f;
 }
-native_function create_arg_function(function_ptr fptr, opcode code)
+native_function create_arg_function(function_ptr_1 fptr, opcode code)
 {
     native_function native_f = {.function = fptr, .args = 1, .name = code};
     native_f.signature = jit_type_create_signature(jit_abi_cdecl, stack_element, &stack_element, 1, 1);
@@ -31,6 +38,11 @@ void types_init()
     stack_element = jit_type_create_struct(elements, 2, 1);
     stack_element_size = jit_type_get_size(stack_element);
 
+    jit_type_t p1[] = {stack_element, jit_type_sys_int};
+    jit_type_t p2[] = {jit_type_sys_int};
+    native_vstore_signature = jit_type_create_signature(jit_abi_cdecl, jit_type_void, p1, 2, 1);
+    native_vload_signature = jit_type_create_signature(jit_abi_cdecl, stack_element, p2, 1, 1);
+
     native_names[BIN_ADD] = "native_add";
     native_names[BIN_SUB] = "native_sub";
     native_names[BIN_DIV] = "native_div";
@@ -38,9 +50,9 @@ void types_init()
     native_names[BIN_NOT_EQUAL] = "native_not_equal";
     native_names[BIN_OR] = "native_or";
     native_names[BIN_AND] = "native_and";
-    native_names[BIN_GRATER] = "native_grater";
+    native_names[BIN_GREATER] = "native_greater";
     native_names[BIN_LOWER] = "native_lower";
-    native_names[BIN_GRATER_OR_EQUAL] = "native_grater_or_equal";
+    native_names[BIN_GREATER_OR_EQUAL] = "native_greater_or_equal";
     native_names[BIN_LOWER_OR_EQUAL] = "native_lower";
     native_names[BIN_BITWISE_AND] = "native_bitwise_and";
     native_names[BIN_BITWISE_OR] = "native_bitwise_or";
@@ -60,9 +72,9 @@ void types_init()
     native_functions[BIN_NOT_EQUAL] = create_two_args_function(native_not_equal, BIN_NOT_EQUAL);
     native_functions[BIN_OR] = create_two_args_function(native_or, BIN_OR);
     native_functions[BIN_AND] = create_two_args_function(native_and, BIN_AND);
-    native_functions[BIN_GRATER] = create_two_args_function(native_grater, BIN_GRATER);
+    native_functions[BIN_GREATER] = create_two_args_function(native_greater, BIN_GREATER);
     native_functions[BIN_LOWER] = create_two_args_function(native_lower, BIN_LOWER);
-    native_functions[BIN_GRATER_OR_EQUAL] = create_two_args_function(native_grater_or_equal, BIN_GRATER_OR_EQUAL);
+    native_functions[BIN_GREATER_OR_EQUAL] = create_two_args_function(native_greater_or_equal, BIN_GREATER_OR_EQUAL);
     native_functions[BIN_LOWER_OR_EQUAL] = create_two_args_function(native_lower, BIN_LOWER_OR_EQUAL);
     native_functions[BIN_BITWISE_AND] = create_two_args_function(native_bitwise_and, BIN_BITWISE_AND);
     native_functions[BIN_BITWISE_OR] = create_two_args_function(native_bitwise_or, BIN_BITWISE_OR);
@@ -130,6 +142,18 @@ inline struct stack_element native_add(struct stack_element a, struct stack_elem
 
     return (struct stack_element){NUMBER, .val.number = (0)};
 }
+inline void native_vstore(struct stack_element a, int index)
+{
+    pr->var_pool.elements[index].ref_counter = 1;
+    pr->var_pool.elements[index].static_element = 1;
+    pr->var_pool.elements[index].static_val = a.val;
+    pr->var_pool.elements[index].type = a.t;
+}
+inline struct stack_element native_vload(int index)
+{
+    return (struct stack_element){
+        .t = pr->var_pool.elements[index].type, .val = pr->var_pool.elements[index].static_val};
+}
 inline struct stack_element native_sub(struct stack_element a, struct stack_element b)
 {
     return (struct stack_element){NUMBER, a.val.number - b.val.number};
@@ -162,7 +186,7 @@ inline struct stack_element native_not_equal(struct stack_element a, struct stac
 {
     return (struct stack_element){NUMBER, a.val.number != b.val.number};
 }
-inline struct stack_element native_grater(struct stack_element a, struct stack_element b)
+inline struct stack_element native_greater(struct stack_element a, struct stack_element b)
 {
     return (struct stack_element){NUMBER, a.val.number > b.val.number};
 }
@@ -170,7 +194,7 @@ inline struct stack_element native_lower(struct stack_element a, struct stack_el
 {
     return (struct stack_element){NUMBER, a.val.number < b.val.number};
 }
-inline struct stack_element native_grater_or_equal(struct stack_element a, struct stack_element b)
+inline struct stack_element native_greater_or_equal(struct stack_element a, struct stack_element b)
 {
     return (struct stack_element){NUMBER, a.val.number >= b.val.number};
 }

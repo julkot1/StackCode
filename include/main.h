@@ -24,9 +24,9 @@ typedef enum
     BIN_NOT_EQUAL,
     BIN_OR,
     BIN_AND,
-    BIN_GRATER,
+    BIN_GREATER,
     BIN_LOWER,
-    BIN_GRATER_OR_EQUAL,
+    BIN_GREATER_OR_EQUAL,
     BIN_LOWER_OR_EQUAL,
     BIN_BITWISE_AND,
     BIN_BITWISE_OR,
@@ -37,6 +37,8 @@ typedef enum
     BIN_TYPEOF,
     BIN_MOD,
     BIN_SIZEOF,
+    BIN_VLOAD,
+    BIN_VSTORE,
     BIN_EOP
 } opcode;
 typedef enum
@@ -80,9 +82,11 @@ typedef struct
 typedef struct
 {
     type type;
+    int static_element;
     size_t size;
     int ref_counter;
     void *val;
+    payload_value static_val;
 } pool_element;
 
 typedef struct

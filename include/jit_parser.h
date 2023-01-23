@@ -8,6 +8,7 @@
 #define CONST_BYTE(v) (jit_value_create_nint_constant(GLOBAL_F, jit_type_ubyte, v))
 #define CONST_INT(v) (jit_value_create_nint_constant(GLOBAL_F, jit_type_sys_int, v))
 #define CONST_LONG(v) (jit_value_create_long_constant(GLOBAL_F, jit_type_sys_long, v))
+#define CONST_PTR(v) (jit_value_create_long_constant(GLOBAL_F, jit_type_void_ptr, v))
 
 void init(program *__pr);
 void parse_program(program *__pr);
@@ -28,5 +29,7 @@ void op_jmp(operation op, jit_label_t *labels);
 void op_jmp_if(operation op, jit_label_t *labels);
 void op_jmp_if_not(operation op, jit_label_t *labels);
 void push_vm_with_type(jit_value_t val, jit_value_t type);
+void op_vload(operation op, program *__pr);
+void op_vstore(operation op, program *__pr);
 jit_value_t op_pop();
 #endif

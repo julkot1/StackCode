@@ -30,4 +30,8 @@
 | bnot |BIN_BITWISE_NOT   |  [`a`] -> [`(!a)`] |
 | shl |BIN_LEFT_SHIFT  |  [`a b`] -> [`(a<<b)`] |
 | shr |BIN_RIGHT_SHIFT  |  [`a b`] -> [`(a>>b)`] |
+| typeof |BIN_TYPEOF |  [`a`] -> [`a type`] |
+| sizeof |BIN_SIZEOF  |  [`a`] -> [`a size`] |
+| vld |BIN_VLOAD  |  [``] -> [`var pool element from given index`] |
+| vst |BIN_VSTORE  |  [`a`] -> [``] var pool at given index `a`|
 | eop |BIN_EOP | end of program |  
