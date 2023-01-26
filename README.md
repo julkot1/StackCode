@@ -32,6 +32,8 @@
 | shr |BIN_RIGHT_SHIFT  |  [`a b`] -> [`(a>>b)`] |
 | typeof |BIN_TYPEOF |  [`a`] -> [`a type`] |
 | sizeof |BIN_SIZEOF  |  [`a`] -> [`a size`] |
-| vld |BIN_VLOAD  |  [``] -> [`var pool element from given index`] |
-| vst |BIN_VSTORE  |  [`a`] -> [``] var pool at given index `a`|
+| vld |BIN_VLOAD  |  [] -> [`var pool element from given index`] |
+| vst |BIN_VSTORE  |  [`a`] -> [] var pool at given index `a`|
+| dump |BIN_DUMP  |  [`a`] -> [] prints to std out `a`|
+| in |BIN_VSTORE  |  [`a(Type)`] -> [`b`] reads std in and pushes on stack result with given type|
 | eop |BIN_EOP | end of program |  

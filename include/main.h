@@ -39,6 +39,7 @@ typedef enum
     BIN_SIZEOF,
     BIN_VLOAD,
     BIN_VSTORE,
+    BIN_INPUT,
     BIN_EOP
 } opcode;
 typedef enum
@@ -104,6 +105,6 @@ typedef struct
     pool var_pool;
 
 } program;
-
+typedef char word[32];
 int main();
 #endif

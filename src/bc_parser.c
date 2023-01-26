@@ -116,6 +116,30 @@ void parse_global(FILE *fd, program *pr)
         idx++;
     }
 }
+int is_type(char *c)
+{
+    if (strcmp(c, TOKEN_TYPE_BOOL) == 0 ||
+        strcmp(c, TOKEN_TYPE_NUMBER) == 0 ||
+        strcmp(c, TOKEN_TYPE_STRING) == 0 ||
+        strcmp(c, TOKEN_TYPE_CHAR) == 0 ||
+        strcmp(c, TOKEN_TYPE_PTR) == 0)
+        return 1;
+    return 0;
+}
+int to_type(char *c)
+{
+    if (strcmp(c, TOKEN_TYPE_BOOL) == 0)
+        return BOOL;
+    else if (strcmp(c, TOKEN_TYPE_NUMBER) == 0)
+        return NUMBER;
+    else if (strcmp(c, TOKEN_TYPE_STRING) == 0)
+        return STRING;
+    else if (strcmp(c, TOKEN_TYPE_CHAR) == 0)
+        return CHAR;
+    else if (strcmp(c, TOKEN_TYPE_PTR) == 0)
+        return PTR;
+    return NUMBER;
+}
 operation parse_operation(char *line, program *pr)
 {
     operation op;
@@ -124,7 +148,12 @@ operation parse_operation(char *line, program *pr)
     if (is_payload_operation(op.code))
     {
         char *payload = strtok(NULL, "\n");
-        if (payload[0] == TOKEN_CONST_POOL_ELEMENT)
+        if (is_type(payload))
+        {
+            op.payload_type = TYPE;
+            op.payload.all = to_type(payload);
+        }
+        else if (payload[0] == TOKEN_CONST_POOL_ELEMENT)
         {
             op.payload_type = PTR;
             op.payload.ptr = &(pr->const_pool.elements[atoi(payload + 1)]);
@@ -224,5 +253,7 @@ opcode str_to_opcode(const char *str)
         return BIN_VLOAD;
     else if (strcmp(str, TOKEN_VSTORE) == 0)
         return BIN_VSTORE;
+    else if (strcmp(str, TOKEN_INPUT) == 0)
+        return BIN_INPUT;
     return BIN_EOP;
 }

@@ -46,9 +46,17 @@
 #define TOKEN_EOP "eop"
 #define TOKEN_VLOAD "vld"
 #define TOKEN_VSTORE "vst"
+#define TOKEN_INPUT "in"
 
 #define TOKEN_CONST_POOL_ELEMENT '$'
 #define TOKEN_VAR_POOL_ELEMENT '*'
+
+#define TOKEN_TYPE_NUMBER "Number"
+#define TOKEN_TYPE_STRING "String"
+#define TOKEN_TYPE_TYPE "Type"
+#define TOKEN_TYPE_PTR "Ptr"
+#define TOKEN_TYPE_BOOL "Bool"
+#define TOKEN_TYPE_CHAR "Char"
 
 typedef enum
 {

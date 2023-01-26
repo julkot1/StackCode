@@ -1,5 +1,6 @@
 #include "include/jit_native.h"
 #include "include/main.h"
+#include "include/bc_parser.h"
 #include <stdlib.h>
 #include "string.h"
 
@@ -12,6 +13,7 @@ program *pr;
 jit_type_t native_vstore_signature;
 jit_type_t native_vload_signature;
 char *native_names[1024];
+char *native_type_names[128];
 void init_native(program *__pr)
 {
     pr = __pr;
@@ -63,6 +65,8 @@ void types_init()
     native_names[BIN_MOD] = "native_mod";
     native_names[BIN_SIZEOF] = "native_sizeof";
     native_names[BIN_TYPEOF] = "native_typeof";
+    native_names[BIN_DUMP] = "native_std_out";
+    native_names[BIN_INPUT] = "native_std_in";
 
     native_functions[BIN_ADD] = create_two_args_function(native_add, BIN_ADD);
     native_functions[BIN_SUB] = create_two_args_function(native_sub, BIN_SUB);
@@ -86,6 +90,15 @@ void types_init()
     // native_functions[BIN_BITWISE_NOT] = create_arg_function(native_bitwise_not, BIN_BITWISE_NOT);
     native_functions[BIN_SIZEOF] = create_arg_function(native_sizeof, BIN_SIZEOF);
     native_functions[BIN_TYPEOF] = create_arg_function(native_typeof, BIN_TYPEOF);
+    native_functions[BIN_DUMP] = create_arg_function(native_std_out, BIN_DUMP);
+    native_functions[BIN_INPUT] = create_arg_function(native_std_in, BIN_INPUT);
+
+    native_type_names[NUMBER] = TOKEN_TYPE_NUMBER;
+    native_type_names[STRING] = TOKEN_TYPE_STRING;
+    native_type_names[BOOL] = TOKEN_TYPE_BOOL;
+    native_type_names[CHAR] = TOKEN_TYPE_CHAR;
+    native_type_names[PTR] = TOKEN_TYPE_PTR;
+    native_type_names[TYPE] = TOKEN_TYPE_TYPE;
 }
 
 inline struct stack_element native_add(struct stack_element a, struct stack_element b)
@@ -148,6 +161,54 @@ inline void native_vstore(struct stack_element a, int index)
     pr->var_pool.elements[index].static_element = 1;
     pr->var_pool.elements[index].static_val = a.val;
     pr->var_pool.elements[index].type = a.t;
+}
+inline void native_std_out(struct stack_element a)
+{
+    if (a.t == NUMBER)
+        printf("%d", a.val.number);
+    else if (a.t == PTR)
+        printf("%s", (char *)((pool_element *)a.val.ptr)->val);
+    else if (a.t == TYPE)
+    {
+        printf("%s", native_type_names[a.val.all]);
+    }
+}
+pool_element *read_string_input()
+{
+#define CHUNK 200
+    char *input = NULL;
+    char tempbuf[CHUNK];
+    pool_element *el = malloc(sizeof(pool_element));
+    size_t input_len = 0,
+           temp_len = 0;
+    do
+    {
+        fgets(tempbuf, CHUNK, stdin);
+        temp_len = strlen(tempbuf);
+        input = realloc(input, input_len + temp_len + 1);
+        strcpy(input + input_len, tempbuf);
+        input_len += temp_len;
+    } while (temp_len == CHUNK - 1 && tempbuf[CHUNK - 2] != '\n');
+
+    el->ref_counter = 1;
+    el->size = input_len;
+    el->static_element = 0;
+    el->val = input;
+    return el;
+}
+struct stack_element native_std_in(struct stack_element a)
+{
+    struct stack_element res;
+    res.t = (type)(a.val.all);
+    if (a.val.all == NUMBER)
+        scanf("%d", &(res.val.number));
+    if (a.val.all == STRING)
+    {
+        pool_element *el = read_string_input();
+        res.t = PTR;
+        res.val.ptr = el;
+    }
+    return res;
 }
 inline struct stack_element native_vload(int index)
 {
