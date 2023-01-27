@@ -4,24 +4,31 @@
 #include "include/jit_native.h"
 jit_context_t context;
 jit_function_t GLOBAL_F;
+jit_function_t *PREV_F;
+int prev_ptr = 0;
 jit_value_t stack_ptr;
 jit_type_t dump_signature;
 
 void stack_init(program *__pr)
 {
+    __pr->stack = malloc(__pr->meta.stack_size * sizeof(struct stack_element));
     jit_type_t params[] = {jit_type_int};
     dump_signature = jit_type_create_signature(
         jit_abi_cdecl, jit_type_int, params, 1, 1);
-
+    __pr->stack_ptr = 0;
     stack_ptr = jit_value_create(GLOBAL_F, jit_type_void_ptr);
-    jit_insn_store(GLOBAL_F, stack_ptr, jit_insn_alloca(GLOBAL_F, CONST_INT(__pr->meta.stack_size * stack_element_size)));
+
+    jit_insn_store(GLOBAL_F, stack_ptr, jit_value_create_nint_constant(GLOBAL_F, jit_type_sys_ulong, (unsigned long)(__pr->stack)));
 }
 
 void init(program *__pr)
 {
+    __pr->functions = malloc(sizeof(jit_function_t) * 10);
     jit_init();
     context = jit_context_create();
-    GLOBAL_F = jit_function_create(context, jit_type_create_signature(jit_abi_cdecl, jit_type_int, NULL, 0, 1));
+    __pr->functions[0] = jit_function_create(context, jit_type_create_signature(jit_abi_cdecl, jit_type_int, NULL, 0, 1));
+    GLOBAL_F = __pr->functions[0];
+    PREV_F = malloc(__pr->meta.functions_size * sizeof(jit_function_t));
     init_native(__pr);
     types_init();
     stack_init(__pr);
@@ -29,6 +36,7 @@ void init(program *__pr)
 }
 void parse_program(program *__pr)
 {
+
     op_node *op_n = __pr->global;
     for (size_t i = 0; i < __pr->meta.operations_size; i++)
     {
@@ -47,10 +55,12 @@ void labels_init(program *__pr)
 void end(program *__pr)
 {
     op_push_jit(CONST_INT(0));
-    // jit_dump_function(stdout, GLOBAL_F, "GLOBAL_F [uncompiled]");
-    jit_function_compile(GLOBAL_F);
-    // jit_dump_function(stdout, GLOBAL_F, "GLOBAL_F [compiled]");
-    jit_function_apply(GLOBAL_F, NULL, NULL);
+    for (int i = __pr->meta.functions_size - 1; i >= 0; i--)
+    {
+        jit_dump_function(stdout, __pr->functions[i], __pr->meta.function_names[i]);
+        jit_function_compile(__pr->functions[i]);
+    }
+    jit_function_apply(__pr->functions[0], NULL, NULL);
     jit_context_destroy(context);
     free(__pr->labels);
 }
@@ -73,6 +83,7 @@ void op_push(operation op)
 
 jit_value_t op_pop()
 {
+
     jit_value_t val = jit_insn_load_relative(GLOBAL_F, stack_ptr, -stack_element_size, stack_element);
     jit_value_t new_ptr = jit_insn_sub(GLOBAL_F, stack_ptr, CONST_INT(stack_element_size));
     jit_insn_store(GLOBAL_F, stack_ptr, new_ptr);
@@ -165,6 +176,39 @@ void op_vstore(operation op, program *__pr)
     jit_insn_call_native(
         GLOBAL_F, "vstore", native_vstore, native_vstore_signature, args, 2, JIT_CALL_NOTHROW);
 }
+void fq(struct stack_element a)
+{
+    printf("%d\n", a.val.number);
+}
+jit_type_t t[1];
+void op_fun_def(operation op, program *__pr)
+{
+    t[0] = jit_type_int;
+    __pr->functions[op.payload.number] = jit_function_create_nested(context,
+                                                                    jit_type_create_signature(jit_abi_cdecl, jit_type_void, t, 1, 1),
+                                                                    __pr->functions[0]);
+    PREV_F[prev_ptr++] = GLOBAL_F;
+    GLOBAL_F = __pr->functions[op.payload.number];
+    jit_value_t param = jit_value_get_param(GLOBAL_F, 0);
+    jit_value_t val = jit_insn_load_relative(GLOBAL_F, param, -stack_element_size, stack_element);
+    jit_value_t new_ptr = jit_insn_sub(GLOBAL_F, param, CONST_INT(stack_element_size));
+    jit_insn_store(GLOBAL_F, param, new_ptr);
+    jit_value_t res = jit_insn_call_native(
+        GLOBAL_F, "fq", fq, jit_type_create_signature(jit_abi_cdecl, jit_type_void, &stack_element, 1, 1), &val, 1, JIT_CALL_NOTHROW);
+}
+void op_fun_end()
+{
+    GLOBAL_F = PREV_F[--prev_ptr];
+}
+void op_fun_call(operation op, program *__pr)
+{
+
+    int id = op.payload.number;
+    jit_function_t fn = __pr->functions[id];
+    char *name = __pr->meta.function_names[id];
+    jit_value_t a = CONST_INT(10);
+    jit_insn_call(GLOBAL_F, name, fn, jit_type_create_signature(jit_abi_cdecl, jit_type_void, t, 1, 1), &a, 1, 0);
+}
 void parse(operation op, program *__pr)
 {
     switch (op.code)
@@ -199,6 +243,15 @@ void parse(operation op, program *__pr)
         break;
     case BIN_VSTORE:
         op_vstore(op, __pr);
+        break;
+    case BIN_FUN_DEF:
+        op_fun_def(op, __pr);
+        break;
+    case BIN_FUN_END:
+        op_fun_end();
+        break;
+    case BIN_CALL:
+        op_fun_call(op, __pr);
         break;
     default:
         op_native(native_functions[op.code]);

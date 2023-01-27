@@ -32,5 +32,8 @@ void op_push_jit(jit_value_t val);
 void op_push(operation op);
 void op_vload(operation op, program *__pr);
 void op_vstore(operation op, program *__pr);
+void op_fun_def(operation op, program *__pr);
+void op_fun_call(operation op, program *__pr);
+void op_fun_end();
 jit_value_t op_pop();
 #endif

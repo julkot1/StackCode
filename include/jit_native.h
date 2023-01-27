@@ -3,11 +3,7 @@
 #include "main.h"
 
 extern program *pr;
-struct stack_element
-{
-    type t;
-    payload_value val;
-};
+
 typedef struct stack_element (*function_ptr)(struct stack_element, struct stack_element);
 typedef struct stack_element (*function_ptr_1)(struct stack_element);
 typedef struct
@@ -20,8 +16,7 @@ typedef struct
 void init_native(program *__pr);
 void types_init();
 
-extern struct stack_element
-native_add(struct stack_element a, struct stack_element b);
+extern struct stack_element native_add(struct stack_element a, struct stack_element b);
 extern struct stack_element native_sub(struct stack_element a, struct stack_element b);
 extern struct stack_element native_div(struct stack_element a, struct stack_element b);
 extern struct stack_element native_mul(struct stack_element a, struct stack_element b);

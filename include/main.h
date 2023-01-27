@@ -40,6 +40,9 @@ typedef enum
     BIN_VLOAD,
     BIN_VSTORE,
     BIN_INPUT,
+    BIN_CALL,
+    BIN_FUN_DEF,
+    BIN_FUN_END,
     BIN_EOP
 } opcode;
 typedef enum
@@ -79,6 +82,8 @@ typedef struct
     int stack_size;
     int const_pool_size;
     int var_pool_size;
+    int functions_size;
+    char **function_names;
 } program_meta;
 typedef struct
 {
@@ -89,7 +94,11 @@ typedef struct
     void *val;
     payload_value static_val;
 } pool_element;
-
+struct stack_element
+{
+    type t;
+    payload_value val;
+};
 typedef struct
 {
     int ptr;
@@ -100,9 +109,12 @@ typedef struct
 {
     operation *global;
     program_meta meta;
-    jit_label_t *labels;
     pool const_pool;
     pool var_pool;
+    jit_label_t *labels;
+    jit_function_t *functions;
+    int stack_ptr;
+    struct stack_element *stack;
 
 } program;
 typedef char word[32];

@@ -21,6 +21,8 @@ file_section get_section(const char *str)
         return SECTION_GLOBAL;
     else if (strcmp(str, TOKEN_SECTION_DATA) == 0)
         return SECTION_DATA;
+    else if (strcmp(str, TOKEN_SECTION_FUNCTIONS) == 0)
+        return SECTION_FUNCTIONS;
     return SECTION_CONST;
 }
 void parse_section(FILE *fd, file_section section, program *pr)
@@ -31,7 +33,29 @@ void parse_section(FILE *fd, file_section section, program *pr)
         parse_global(fd, pr);
     else if (section == SECTION_CONST)
         parse_const_pool(fd, pr);
+    else if (section == SECTION_FUNCTIONS)
+        parse_functions(fd, pr);
 }
+void parse_functions(FILE *fd, program *pr)
+{
+    pr->meta.function_names = malloc(sizeof(char *) * pr->meta.functions_size);
+    size_t len = 0;
+    char *data;
+    char *line = NULL;
+    int idx = 0;
+    do
+    {
+        getline(&line, &len, fd);
+        if (*line == '\n')
+            break;
+        data = strtok(line, " ");
+        size_t l = strlen(data);
+        pr->meta.function_names[idx] = malloc(l * sizeof(char));
+        strncpy(pr->meta.function_names[idx], data, l - 1);
+        idx++;
+    } while (1);
+}
+
 void parse_const_pool(FILE *fd, program *pr)
 {
     pr->const_pool.elements = malloc(sizeof(pool_element) * pr->meta.const_pool_size);
@@ -86,6 +110,11 @@ void parse_data_value(const char *name, const char *val, program *pr)
     {
         pr->meta.var_pool_size = atoi(val);
         pr->var_pool.elements = malloc(sizeof(pool_element) * pr->meta.var_pool_size);
+    }
+    else if (strcmp(name, TOKEN_DATA_FUNCTIONS) == 0)
+    {
+        pr->meta.functions_size = atoi(val);
+        pr->functions = malloc(sizeof(jit_function_t) * pr->meta.functions_size);
     }
 }
 void parse_global(FILE *fd, program *pr)
@@ -181,7 +210,7 @@ char *opcode_str(char *str)
 }
 int is_payload_operation(opcode op)
 {
-    return op == BIN_PUSH || op == BIN_LABEL || op == BIN_JMP || op == BIN_JMP_IF || op == BIN_JMP_IF_NOT || op == BIN_VSTORE || op == BIN_VLOAD;
+    return op == BIN_PUSH || op == BIN_LABEL || op == BIN_JMP || op == BIN_JMP_IF || op == BIN_JMP_IF_NOT || op == BIN_VSTORE || op == BIN_VLOAD || op == BIN_FUN_DEF || op == BIN_CALL;
 }
 opcode str_to_opcode(const char *str)
 {
@@ -255,5 +284,11 @@ opcode str_to_opcode(const char *str)
         return BIN_VSTORE;
     else if (strcmp(str, TOKEN_INPUT) == 0)
         return BIN_INPUT;
+    else if (strcmp(str, TOKEN_CALL) == 0)
+        return BIN_CALL;
+    else if (strcmp(str, TOKEN_FUN_DEF) == 0)
+        return BIN_FUN_DEF;
+    else if (strcmp(str, TOKEN_FUN_END) == 0)
+        return BIN_FUN_END;
     return BIN_EOP;
 }
