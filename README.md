@@ -34,6 +34,9 @@
 | sizeof |BIN_SIZEOF  |  [`a`] -> [`a size`] |
 | vld |BIN_VLOAD  |  [] -> [`var pool element from given index`] |
 | vst |BIN_VSTORE  |  [`a`] -> [] var pool at given index `a`|
-| dump |BIN_DUMP  |  [`a`] -> [] prints to std out `a`|
-| in |BIN_VSTORE  |  [`a(Type)`] -> [`b`] reads std in and pushes on stack result with given type|
+| dump |BIN_DUMP  |  [`a`] -> [] print to std out `a`|
+| in |BIN_VSTORE  |  [`a(Type)`] -> [`b`] read std in and push on stack result with given type|
+| fde a | BIN_FUN_DEF  |  define the function with index `a`|
+| fnd  | BIN_FUN_END  |  end of the function |
+| call a| BIN_CALL  |  invoke function with index `a` |
 | eop |BIN_EOP | end of program |  

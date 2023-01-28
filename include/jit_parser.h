@@ -13,7 +13,7 @@
 void init(program *__pr);
 void parse_program(program *__pr);
 void labels_init(program *__pr);
-void stack_init(program *__pr);
+void global_function_init(program *__pr);
 
 void end(program *__pr);
 void parse(operation op, program *__pr);
@@ -22,7 +22,6 @@ void op_native_1(native_function native_f);
 void op_native_2(native_function native_f);
 void op_dup();
 void op_swap();
-void op_dump();
 void op_push(operation op);
 void op_label(operation op, jit_label_t *labels);
 void op_jmp(operation op, jit_label_t *labels);

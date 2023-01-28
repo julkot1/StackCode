@@ -107,14 +107,18 @@ typedef struct
 
 typedef struct
 {
+    jit_function_t fn;
+    jit_type_t signature;
+    jit_value_t stack_ptr;
+} function;
+typedef struct
+{
     operation *global;
     program_meta meta;
     pool const_pool;
     pool var_pool;
     jit_label_t *labels;
-    jit_function_t *functions;
-    int stack_ptr;
-    struct stack_element *stack;
+    function *functions;
 
 } program;
 typedef char word[32];

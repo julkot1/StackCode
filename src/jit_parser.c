@@ -4,21 +4,18 @@
 #include "include/jit_native.h"
 jit_context_t context;
 jit_function_t GLOBAL_F;
-jit_function_t *PREV_F;
+function **PREV_F;
+function *CURRENT_F;
 int prev_ptr = 0;
-jit_value_t stack_ptr;
-jit_type_t dump_signature;
 
-void stack_init(program *__pr)
+void global_function_init(program *__pr)
 {
-    __pr->stack = malloc(__pr->meta.stack_size * sizeof(struct stack_element));
-    jit_type_t params[] = {jit_type_int};
-    dump_signature = jit_type_create_signature(
-        jit_abi_cdecl, jit_type_int, params, 1, 1);
-    __pr->stack_ptr = 0;
-    stack_ptr = jit_value_create(GLOBAL_F, jit_type_void_ptr);
-
-    jit_insn_store(GLOBAL_F, stack_ptr, jit_value_create_nint_constant(GLOBAL_F, jit_type_sys_ulong, (unsigned long)(__pr->stack)));
+    __pr->functions[0].fn = jit_function_create(context, jit_type_create_signature(jit_abi_cdecl, jit_type_int, NULL, 0, 1));
+    GLOBAL_F = __pr->functions[0].fn;
+    CURRENT_F = &__pr->functions[0];
+    PREV_F = malloc(__pr->meta.functions_size * sizeof(function));
+    CURRENT_F->stack_ptr = jit_value_create(GLOBAL_F, jit_type_void_ptr);
+    jit_insn_store(GLOBAL_F, CURRENT_F->stack_ptr, jit_insn_alloca(GLOBAL_F, CONST_INT((__pr->meta.stack_size * stack_element_size))));
 }
 
 void init(program *__pr)
@@ -26,13 +23,11 @@ void init(program *__pr)
     __pr->functions = malloc(sizeof(jit_function_t) * 10);
     jit_init();
     context = jit_context_create();
-    __pr->functions[0] = jit_function_create(context, jit_type_create_signature(jit_abi_cdecl, jit_type_int, NULL, 0, 1));
-    GLOBAL_F = __pr->functions[0];
-    PREV_F = malloc(__pr->meta.functions_size * sizeof(jit_function_t));
+
     init_native(__pr);
     types_init();
-    stack_init(__pr);
     labels_init(__pr);
+    global_function_init(__pr);
 }
 void parse_program(program *__pr)
 {
@@ -57,10 +52,10 @@ void end(program *__pr)
     op_push_jit(CONST_INT(0));
     for (int i = __pr->meta.functions_size - 1; i >= 0; i--)
     {
-        jit_dump_function(stdout, __pr->functions[i], __pr->meta.function_names[i]);
-        jit_function_compile(__pr->functions[i]);
+        jit_dump_function(stdout, __pr->functions[i].fn, __pr->meta.function_names[i]);
+        jit_function_compile(__pr->functions[i].fn);
     }
-    jit_function_apply(__pr->functions[0], NULL, NULL);
+    jit_function_apply(__pr->functions[0].fn, NULL, NULL);
     jit_context_destroy(context);
     free(__pr->labels);
 }
@@ -68,25 +63,25 @@ void end(program *__pr)
 void op_push_jit(jit_value_t val)
 {
 
-    jit_insn_store_relative(GLOBAL_F, stack_ptr, 0, val);
-    jit_value_t new_ptr = jit_insn_add(GLOBAL_F, stack_ptr, CONST_INT(stack_element_size));
-    jit_insn_store(GLOBAL_F, stack_ptr, new_ptr);
+    jit_insn_store_relative(GLOBAL_F, CURRENT_F->stack_ptr, 0, val);
+    jit_value_t new_ptr = jit_insn_add(GLOBAL_F, CURRENT_F->stack_ptr, CONST_INT(stack_element_size));
+    jit_insn_store(GLOBAL_F, CURRENT_F->stack_ptr, new_ptr);
 }
 
 void op_push(operation op)
 {
-    jit_insn_store_relative(GLOBAL_F, stack_ptr, 0, CONST_INT(op.payload_type));
-    jit_insn_store_relative(GLOBAL_F, stack_ptr, stack_element_value_size, CONST_LONG(op.payload.all));
-    jit_value_t new_ptr = jit_insn_add(GLOBAL_F, stack_ptr, CONST_UBYTE(stack_element_size));
-    jit_insn_store(GLOBAL_F, stack_ptr, new_ptr);
+    jit_insn_store_relative(GLOBAL_F, CURRENT_F->stack_ptr, 0, CONST_INT(op.payload_type));
+    jit_insn_store_relative(GLOBAL_F, CURRENT_F->stack_ptr, stack_element_value_size, CONST_LONG(op.payload.all));
+    jit_value_t new_ptr = jit_insn_add(GLOBAL_F, CURRENT_F->stack_ptr, CONST_UBYTE(stack_element_size));
+    jit_insn_store(GLOBAL_F, CURRENT_F->stack_ptr, new_ptr);
 }
 
 jit_value_t op_pop()
 {
 
-    jit_value_t val = jit_insn_load_relative(GLOBAL_F, stack_ptr, -stack_element_size, stack_element);
-    jit_value_t new_ptr = jit_insn_sub(GLOBAL_F, stack_ptr, CONST_INT(stack_element_size));
-    jit_insn_store(GLOBAL_F, stack_ptr, new_ptr);
+    jit_value_t val = jit_insn_load_relative(GLOBAL_F, CURRENT_F->stack_ptr, -stack_element_size, stack_element);
+    jit_value_t new_ptr = jit_insn_sub(GLOBAL_F, CURRENT_F->stack_ptr, CONST_INT(stack_element_size));
+    jit_insn_store(GLOBAL_F, CURRENT_F->stack_ptr, new_ptr);
     return val;
 }
 void op_swap()
@@ -101,13 +96,6 @@ void op_dup()
     jit_value_t a = op_pop();
     op_push_jit(a);
     op_push_jit(a);
-}
-void op_dump()
-{
-    jit_value_t a = jit_insn_address_of(GLOBAL_F, op_pop());
-    jit_value_t a_union = jit_insn_load_relative(GLOBAL_F, jit_insn_address_of(GLOBAL_F, a), stack_element_size, jit_type_long);
-    jit_value_t a_val = jit_insn_load_relative(GLOBAL_F, jit_insn_address_of(GLOBAL_F, a_union), 0, jit_type_int);
-    jit_insn_call_native(GLOBAL_F, "putchar", putchar, dump_signature, &a_val, 1, JIT_CALL_NOTHROW);
 }
 
 void op_label(operation op, jit_label_t *labels)
@@ -180,34 +168,32 @@ void fq(struct stack_element a)
 {
     printf("%d\n", a.val.number);
 }
-jit_type_t t[1];
+
 void op_fun_def(operation op, program *__pr)
 {
-    t[0] = jit_type_int;
-    __pr->functions[op.payload.number] = jit_function_create_nested(context,
-                                                                    jit_type_create_signature(jit_abi_cdecl, jit_type_void, t, 1, 1),
-                                                                    __pr->functions[0]);
-    PREV_F[prev_ptr++] = GLOBAL_F;
-    GLOBAL_F = __pr->functions[op.payload.number];
-    jit_value_t param = jit_value_get_param(GLOBAL_F, 0);
-    jit_value_t val = jit_insn_load_relative(GLOBAL_F, param, -stack_element_size, stack_element);
-    jit_value_t new_ptr = jit_insn_sub(GLOBAL_F, param, CONST_INT(stack_element_size));
-    jit_insn_store(GLOBAL_F, param, new_ptr);
-    jit_value_t res = jit_insn_call_native(
-        GLOBAL_F, "fq", fq, jit_type_create_signature(jit_abi_cdecl, jit_type_void, &stack_element, 1, 1), &val, 1, JIT_CALL_NOTHROW);
+
+    __pr->functions[op.payload.number].fn = jit_function_create_nested(context,
+                                                                       jit_type_create_signature(jit_abi_cdecl, jit_type_void, NULL, 0, 1),
+                                                                       __pr->functions[0].fn);
+    PREV_F[prev_ptr++] = CURRENT_F;
+    CURRENT_F = &__pr->functions[op.payload.number];
+    GLOBAL_F = __pr->functions[op.payload.number].fn;
+    CURRENT_F->stack_ptr = jit_value_create(GLOBAL_F, jit_type_void_ptr);
+
+    jit_insn_store(GLOBAL_F, CURRENT_F->stack_ptr, jit_insn_alloca(GLOBAL_F, CONST_INT((__pr->meta.stack_size * stack_element_size))));
 }
 void op_fun_end()
 {
-    GLOBAL_F = PREV_F[--prev_ptr];
+    CURRENT_F = PREV_F[--prev_ptr];
+    GLOBAL_F = CURRENT_F->fn;
 }
 void op_fun_call(operation op, program *__pr)
 {
 
     int id = op.payload.number;
-    jit_function_t fn = __pr->functions[id];
+    jit_function_t fn = __pr->functions[id].fn;
     char *name = __pr->meta.function_names[id];
-    jit_value_t a = CONST_INT(10);
-    jit_insn_call(GLOBAL_F, name, fn, jit_type_create_signature(jit_abi_cdecl, jit_type_void, t, 1, 1), &a, 1, 0);
+    jit_insn_call(GLOBAL_F, name, fn, jit_type_create_signature(jit_abi_cdecl, jit_type_void, NULL, 0, 1), NULL, 0, 0);
 }
 void parse(operation op, program *__pr)
 {
