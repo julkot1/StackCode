@@ -1,4 +1,6 @@
 .vscode
 bc
+debug
 *.bc
 *.bin
+*.o

@@ -1,3 +1,4 @@
+#pragma once
 #ifndef MAIN
 #define MAIN
 
@@ -23,9 +24,9 @@ typedef enum
     BIN_NOT_EQUAL,
     BIN_OR,
     BIN_AND,
-    BIN_GRATER,
+    BIN_GREATER,
     BIN_LOWER,
-    BIN_GRATER_OR_EQUAL,
+    BIN_GREATER_OR_EQUAL,
     BIN_LOWER_OR_EQUAL,
     BIN_BITWISE_AND,
     BIN_BITWISE_OR,
@@ -34,6 +35,14 @@ typedef enum
     BIN_LEFT_SHIFT,
     BIN_RIGHT_SHIFT,
     BIN_TYPEOF,
+    BIN_MOD,
+    BIN_SIZEOF,
+    BIN_VLOAD,
+    BIN_VSTORE,
+    BIN_INPUT,
+    BIN_CALL,
+    BIN_FUN_DEF,
+    BIN_FUN_END,
     BIN_EOP
 } opcode;
 typedef enum
@@ -66,14 +75,52 @@ struct op_node
     operation op;
     op_node *next;
 };
+typedef struct
+{
+    int operations_size;
+    int labels_size;
+    int stack_size;
+    int const_pool_size;
+    int var_pool_size;
+    int functions_size;
+    char **function_names;
+} program_meta;
+typedef struct
+{
+    type type;
+    int static_element;
+    size_t size;
+    int ref_counter;
+    void *val;
+    payload_value static_val;
+} pool_element;
+struct stack_element
+{
+    type t;
+    payload_value val;
+};
+typedef struct
+{
+    int ptr;
+    pool_element *elements;
+} pool;
 
 typedef struct
 {
-    op_node *global;
-    int labels_size;
-    int stack_size;
+    jit_function_t fn;
+    jit_type_t signature;
+    jit_value_t stack_ptr;
+} function;
+typedef struct
+{
+    operation *global;
+    program_meta meta;
+    pool const_pool;
+    pool var_pool;
     jit_label_t *labels;
-} program;
+    function *functions;
 
+} program;
+typedef char word[32];
 int main();
 #endif
