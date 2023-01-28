@@ -1,6 +1,7 @@
 # Simple stack-oriented jit compiler
 
 ## Operations
+
 | operation  | op_code  | description  
 |---|---|---|
 | push a |BIN_PUSH   |  [] -> [`a`] |  
@@ -36,7 +37,30 @@
 | vst |BIN_VSTORE  |  [`a`] -> [] var pool at given index `a`|
 | dump |BIN_DUMP  |  [`a`] -> [] print to std out `a`|
 | in |BIN_VSTORE  |  [`a(Type)`] -> [`b`] read std in and push on stack result with given type|
-| fde a | BIN_FUN_DEF  |  define the function with index `a`|
-| fnd  | BIN_FUN_END  |  end of the function |
 | call a| BIN_CALL  |  invoke function with index `a` |
 | eop |BIN_EOP | end of program |  
+
+## Byte code assembler
+
+* The file is divided into sections
+* Each section has a new line at the end
+* File has a new line at the end
+* The lines that belong to the section start with a tab
+* To get element of a const pool use prefix `$` and element id  (eg `$1`)
+* To get element of a const var use prefix `*` and element id  (eg `*1`)
+
+| section  | description  
+|---|---|
+| ::DATA | contains vm metadata |
+| ::CONST_POOL |  definitions of constant elements in program (each element in new line)  |
+| ::FUNCTION `name` | operations   |
+
+## ::DATA properties
+
+| name | description  
+|---|---|
+| .stack_size| size of function stack|
+| .labels| available number of labels in program|
+| .functions| amount of functions in program|
+| .const_pool_size| size of constance pool|
+| .var_pool_size| size of variable pool|

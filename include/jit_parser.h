@@ -11,11 +11,13 @@
 #define CONST_PTR(v) (jit_value_create_long_constant(GLOBAL_F, jit_type_void_ptr, v))
 
 void init(program *__pr);
-void parse_program(program *__pr);
 void labels_init(program *__pr);
-void global_function_init(program *__pr);
 
-void end(program *__pr);
+void parse_program(program *__pr);
+void parse_function(program *__pr, function *fn);
+void init_function(function *fn);
+void compile_function(program *__pr, function *fn);
+
 void parse(operation op, program *__pr);
 void op_native(native_function native_f);
 void op_native_1(native_function native_f);
@@ -31,7 +33,6 @@ void op_push_jit(jit_value_t val);
 void op_push(operation op);
 void op_vload(operation op, program *__pr);
 void op_vstore(operation op, program *__pr);
-void op_fun_def(operation op, program *__pr);
 void op_fun_call(operation op, program *__pr);
 void op_fun_end();
 jit_value_t op_pop();

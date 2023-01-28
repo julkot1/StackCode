@@ -1,15 +1,23 @@
 #include "include/bc_parser.h"
 #include <stdio.h>
 #include <stdlib.h>
-program parse_program_bc(const char *file_path)
+
+int function_idx;
+
+program *parse_program_bc(const char *file_path)
 {
-    program pr = {};
+    function_idx = 0;
+    program *pr = malloc(sizeof(program));
     FILE *fd = fopen(file_path, "r");
     size_t len = 0;
     char *line = NULL;
     while (getline(&line, &len, fd) != -1)
     {
-        parse_section(fd, get_section(line), &pr);
+
+        char *header = strtok(line, " ");
+        char *data = strtok(NULL, "\n");
+
+        parse_section(fd, get_section(header), data, pr);
     }
     fclose(fd);
 
@@ -17,43 +25,59 @@ program parse_program_bc(const char *file_path)
 }
 file_section get_section(const char *str)
 {
-    if (strcmp(str, TOKEN_SECTION_GLOBAL) == 0)
-        return SECTION_GLOBAL;
+    if (strcmp(str, TOKEN_SECTION_FUNCTIONS) == 0)
+        return SECTION_FUNCTION;
     else if (strcmp(str, TOKEN_SECTION_DATA) == 0)
         return SECTION_DATA;
-    else if (strcmp(str, TOKEN_SECTION_FUNCTIONS) == 0)
-        return SECTION_FUNCTIONS;
     return SECTION_CONST;
 }
-void parse_section(FILE *fd, file_section section, program *pr)
+void parse_section(FILE *fd, file_section section, char *data, program *pr)
 {
+
     if (section == SECTION_DATA)
         parse_data(fd, pr);
-    else if (section == SECTION_GLOBAL)
-        parse_global(fd, pr);
     else if (section == SECTION_CONST)
         parse_const_pool(fd, pr);
-    else if (section == SECTION_FUNCTIONS)
-        parse_functions(fd, pr);
+    else if (section == SECTION_FUNCTION)
+        parse_function_bc(fd, data, pr);
 }
-void parse_functions(FILE *fd, program *pr)
+void parse_function_bc(FILE *fd, char *name, program *pr)
 {
-    pr->meta.function_names = malloc(sizeof(char *) * pr->meta.functions_size);
-    size_t len = 0;
-    char *data;
+
+    size_t name_len = strlen(name);
+
+    pr->meta.function_names[function_idx] = malloc(name_len * sizeof(char));
+    strcpy(pr->meta.function_names[function_idx], name);
+
+    pr->functions[function_idx].id = function_idx;
+    size_t len = 1;
+    pr->functions[function_idx].code_size = 1;
+    op_node *root = malloc(sizeof(op_node));
+    op_node *tmp = root;
     char *line = NULL;
-    int idx = 0;
     do
     {
         getline(&line, &len, fd);
         if (*line == '\n')
             break;
-        data = strtok(line, " ");
-        size_t l = strlen(data);
-        pr->meta.function_names[idx] = malloc(l * sizeof(char));
-        strncpy(pr->meta.function_names[idx], data, l - 1);
-        idx++;
+        line[len - 2] = '\0';
+        tmp->op = parse_operation(line, pr);
+        tmp->next = malloc(sizeof(op_node));
+        tmp = tmp->next;
+        pr->functions[function_idx].code_size++;
     } while (1);
+    pr->functions[function_idx].code = malloc(pr->functions[function_idx].code_size * sizeof(operation));
+
+    tmp = root;
+    int op_idx = 0;
+    while (tmp != NULL)
+    {
+        pr->functions[function_idx].code[op_idx] = tmp->op;
+        tmp = tmp->next;
+        op_idx++;
+    }
+
+    function_idx++;
 }
 
 void parse_const_pool(FILE *fd, program *pr)
@@ -85,6 +109,7 @@ void parse_const_pool(FILE *fd, program *pr)
 
 void parse_data(FILE *fd, program *pr)
 {
+
     size_t len = 0;
     char *line = NULL;
     do
@@ -114,37 +139,11 @@ void parse_data_value(const char *name, const char *val, program *pr)
     else if (strcmp(name, TOKEN_DATA_FUNCTIONS) == 0)
     {
         pr->meta.functions_size = atoi(val);
-        pr->functions = malloc(sizeof(jit_function_t) * pr->meta.functions_size);
+        pr->functions = malloc(sizeof(function) * pr->meta.functions_size);
+        pr->meta.function_names = malloc(sizeof(char *) * pr->meta.functions_size);
     }
 }
-void parse_global(FILE *fd, program *pr)
-{
-    size_t len = 1;
-    pr->meta.operations_size = 0;
-    op_node *root = malloc(sizeof(op_node));
-    op_node *tmp = root;
-    char *line = NULL;
-    do
-    {
-        getline(&line, &len, fd);
-        if (*line == '\n')
-            break;
-        line[len - 2] = '\0';
-        tmp->op = parse_operation(line, pr);
-        tmp->next = malloc(sizeof(op_node));
-        tmp = tmp->next;
-        pr->meta.operations_size++;
-    } while (1);
-    pr->global = malloc(pr->meta.operations_size * sizeof(operation));
-    tmp = root;
-    int idx = 1;
-    while (tmp->op.code != BIN_EOP)
-    {
-        pr->global[idx] = tmp->op;
-        tmp = tmp->next;
-        idx++;
-    }
-}
+
 int is_type(char *c)
 {
     if (strcmp(c, TOKEN_TYPE_BOOL) == 0 ||
@@ -210,7 +209,7 @@ char *opcode_str(char *str)
 }
 int is_payload_operation(opcode op)
 {
-    return op == BIN_PUSH || op == BIN_LABEL || op == BIN_JMP || op == BIN_JMP_IF || op == BIN_JMP_IF_NOT || op == BIN_VSTORE || op == BIN_VLOAD || op == BIN_FUN_DEF || op == BIN_CALL;
+    return op == BIN_PUSH || op == BIN_LABEL || op == BIN_JMP || op == BIN_JMP_IF || op == BIN_JMP_IF_NOT || op == BIN_VSTORE || op == BIN_VLOAD || op == BIN_CALL;
 }
 opcode str_to_opcode(const char *str)
 {
@@ -286,9 +285,5 @@ opcode str_to_opcode(const char *str)
         return BIN_INPUT;
     else if (strcmp(str, TOKEN_CALL) == 0)
         return BIN_CALL;
-    else if (strcmp(str, TOKEN_FUN_DEF) == 0)
-        return BIN_FUN_DEF;
-    else if (strcmp(str, TOKEN_FUN_END) == 0)
-        return BIN_FUN_END;
     return BIN_EOP;
 }

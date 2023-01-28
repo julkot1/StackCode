@@ -4,12 +4,13 @@
 #include <jit/jit.h>
 #include <stdio.h>
 #include <stdlib.h>
-program p;
+program *p;
 int main()
 {
     p = parse_program_bc("program.bc");
+
     init(&p);
-    parse_program(&p);
-    end(&p);
+    parse_program(p);
+
     exit(EXIT_SUCCESS);
 }

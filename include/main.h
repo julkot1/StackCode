@@ -41,8 +41,6 @@ typedef enum
     BIN_VSTORE,
     BIN_INPUT,
     BIN_CALL,
-    BIN_FUN_DEF,
-    BIN_FUN_END,
     BIN_EOP
 } opcode;
 typedef enum
@@ -110,10 +108,15 @@ typedef struct
     jit_function_t fn;
     jit_type_t signature;
     jit_value_t stack_ptr;
+
+    int num_args;
+    int is_returning;
+    int id;
+    int code_size;
+    operation *code;
 } function;
 typedef struct
 {
-    operation *global;
     program_meta meta;
     pool const_pool;
     pool var_pool;

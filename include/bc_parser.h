@@ -3,10 +3,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#define TOKEN_SECTION_GLOBAL "::GLOBAL\n"
 #define TOKEN_SECTION_DATA "::DATA\n"
 #define TOKEN_SECTION_CONST "::CONST_POOL\n"
-#define TOKEN_SECTION_FUNCTIONS "::FUNCTIONS\n"
+#define TOKEN_SECTION_FUNCTIONS "::FUNCTION"
 
 #define TOKEN_DATA_STACK_SIZE ".stack_size"
 #define TOKEN_DATA_LABELS ".labels"
@@ -50,8 +49,6 @@
 #define TOKEN_VSTORE "vst"
 #define TOKEN_INPUT "in"
 #define TOKEN_CALL "call"
-#define TOKEN_FUN_DEF "fde"
-#define TOKEN_FUN_END "fnd"
 
 #define TOKEN_CONST_POOL_ELEMENT '$'
 #define TOKEN_VAR_POOL_ELEMENT '*'
@@ -63,26 +60,21 @@
 #define TOKEN_TYPE_BOOL "Bool"
 #define TOKEN_TYPE_CHAR "Char"
 
-#define TOKEN_FUNCTION '!'
-
 typedef enum
 {
-    SECTION_GLOBAL,
     SECTION_DATA,
-    SECTION_FUNCTIONS,
+    SECTION_FUNCTION,
     SECTION_CONST
 
 } file_section;
-program parse_program_bc(const char *file_path);
+program *parse_program_bc(const char *file_path);
 void parse_data(FILE *fd, program *pr);
-void parse_section(FILE *fd, file_section section, program *pr);
-void parse_global(FILE *fd, program *pr);
+void parse_section(FILE *fd, file_section section, char *data, program *pr);
 void parse_const_pool(FILE *fd, program *pr);
-void parse_functions(FILE *fd, program *pr);
+void parse_function_bc(FILE *fd, char *name, program *pr);
 operation parse_operation(char *line, program *pr);
 opcode str_to_opcode(const char *str);
 char *opcode_str(char *str);
-file_section
-get_section(const char *str);
+file_section get_section(const char *str);
 void parse_data_value(const char *name, const char *val, program *pr);
 int is_payload_operation(opcode op);
