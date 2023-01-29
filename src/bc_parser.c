@@ -48,7 +48,6 @@ void parse_function_bc(FILE *fd, char *name, program *pr)
 
     pr->meta.function_names[function_idx] = malloc(name_len * sizeof(char));
     strcpy(pr->meta.function_names[function_idx], name);
-
     pr->functions[function_idx].id = function_idx;
     size_t len = 1;
     pr->functions[function_idx].code_size = 1;

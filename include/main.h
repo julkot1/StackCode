@@ -125,5 +125,6 @@ typedef struct
 
 } program;
 typedef char word[32];
+extern program *__p;
 int main();
 #endif

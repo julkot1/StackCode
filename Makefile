@@ -1,4 +1,4 @@
-CFLAGS=-I. -ljit 
+CFLAGS=-I. -ljit
 DEPS = include/*.h
 OBJ = src/*.o 
 

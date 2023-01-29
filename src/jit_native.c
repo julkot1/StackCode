@@ -9,26 +9,25 @@ jit_uint stack_element_size;
 jit_type_t stack_element_value;
 jit_uint stack_element_value_size;
 native_function native_functions[1024];
-program *pr;
+
 jit_type_t native_vstore_signature;
 jit_type_t native_vload_signature;
 char *native_names[1024];
 char *native_type_names[128];
-void init_native(program *__pr)
-{
-    pr = __pr;
-}
+
 native_function create_two_args_function(function_ptr fptr, opcode code)
 {
     jit_type_t params[] = {stack_element, stack_element};
     native_function native_f = {.function = fptr, .args = 2, .name = code};
     native_f.signature = jit_type_create_signature(jit_abi_cdecl, stack_element, params, 2, 1);
+    native_f.returning = 1;
     return native_f;
 }
 native_function create_arg_function(function_ptr_1 fptr, opcode code)
 {
     native_function native_f = {.function = fptr, .args = 1, .name = code};
     native_f.signature = jit_type_create_signature(jit_abi_cdecl, stack_element, &stack_element, 1, 1);
+    native_f.returning = 1;
     return native_f;
 }
 void types_init()
@@ -99,6 +98,8 @@ void types_init()
     native_type_names[CHAR] = TOKEN_TYPE_CHAR;
     native_type_names[PTR] = TOKEN_TYPE_PTR;
     native_type_names[TYPE] = TOKEN_TYPE_TYPE;
+
+    native_functions[BIN_DUMP].returning = 0;
 }
 
 inline struct stack_element native_add(struct stack_element a, struct stack_element b)
@@ -157,15 +158,15 @@ inline struct stack_element native_add(struct stack_element a, struct stack_elem
 }
 inline void native_vstore(struct stack_element a, int index)
 {
-    pr->var_pool.elements[index].ref_counter = 1;
-    pr->var_pool.elements[index].static_element = 1;
-    pr->var_pool.elements[index].static_val = a.val;
-    pr->var_pool.elements[index].type = a.t;
+    __p->var_pool.elements[index].ref_counter = 1;
+    __p->var_pool.elements[index].static_element = 1;
+    __p->var_pool.elements[index].static_val = a.val;
+    __p->var_pool.elements[index].type = a.t;
 }
 inline void native_std_out(struct stack_element a)
 {
     if (a.t == NUMBER)
-        printf("%d", a.val.number);
+        printf("%d\n", a.val.number);
     else if (a.t == PTR)
         printf("%s", (char *)((pool_element *)a.val.ptr)->val);
     else if (a.t == TYPE)
@@ -213,7 +214,7 @@ struct stack_element native_std_in(struct stack_element a)
 inline struct stack_element native_vload(int index)
 {
     return (struct stack_element){
-        .t = pr->var_pool.elements[index].type, .val = pr->var_pool.elements[index].static_val};
+        .t = __p->var_pool.elements[index].type, .val = __p->var_pool.elements[index].static_val};
 }
 inline struct stack_element native_sub(struct stack_element a, struct stack_element b)
 {

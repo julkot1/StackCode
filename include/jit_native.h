@@ -2,18 +2,17 @@
 #include <jit/jit.h>
 #include "main.h"
 
-extern program *pr;
-
 typedef struct stack_element (*function_ptr)(struct stack_element, struct stack_element);
 typedef struct stack_element (*function_ptr_1)(struct stack_element);
 typedef struct
 {
     int args;
+    int returning;
     opcode name;
     jit_type_t signature;
     function_ptr function;
 } native_function;
-void init_native(program *__pr);
+
 void types_init();
 
 extern struct stack_element native_add(struct stack_element a, struct stack_element b);
