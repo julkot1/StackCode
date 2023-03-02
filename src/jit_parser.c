@@ -20,6 +20,7 @@ void parse_program()
     {
         jit_context_build_start(context);
         init_function(&(__p->functions[i]));
+
         jit_context_build_end(context);
     }
     for (int i = 0; i < __p->meta.functions_size; i++)
@@ -28,21 +29,22 @@ void parse_program()
         parse_function(&(__p->functions[i]));
         jit_context_build_end(context);
     }
+
     for (int i = __p->meta.functions_size - 1; i >= 0; i--)
     {
         jit_context_build_start(context);
 
-        jit_function_set_optimization_level(__p->functions[i].fn, 0);
-        jit_optimize(__p->functions[i].fn);
-        // jit_dump_function(stdout, __p->functions[i].fn, __p->meta.function_names[__p->functions[i].id]);
-        jit_compile(__p->functions[i].fn);
-
+        jit_function_compile(__p->functions[i].fn);
+        jit_function_clear_recompilable(__p->functions[i].fn);
+        jit_function_compile(__p->functions[i].fn);
         jit_context_build_end(context);
     }
-    // jit_function_apply(__p->functions[0].fn, NULL, NULL);
+    jit_function_apply(__p->functions[0].fn, NULL, NULL);
+    /*
     typedef int (*FF)();
     FF program_function = jit_function_to_closure(__p->functions[0].fn);
     program_function();
+    */
     jit_context_destroy(context);
     free(__p->labels);
 }
@@ -65,6 +67,7 @@ void init_function(function *fn)
 {
 
     fn->fn = jit_function_create(context, jit_type_create_signature(jit_abi_cdecl, jit_type_void, NULL, 0, 1));
+    jit_function_set_recompilable(fn->fn);
 }
 void compile_function(function *fn)
 {

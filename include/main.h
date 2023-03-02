@@ -120,9 +120,8 @@ typedef struct
     program_meta meta;
     pool const_pool;
     pool var_pool;
-    jit_label_t *labels;
     function *functions;
-
+    jit_label_t *labels;
 } program;
 typedef char word[32];
 extern program *__p;
