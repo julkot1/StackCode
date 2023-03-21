@@ -1,6 +1,6 @@
-CFLAGS=-I. -ljit
+CFLAGS=-I. -O2
 DEPS = include/*.h
-OBJ = src/*.o 
+OBJ = src/*.o
 
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)

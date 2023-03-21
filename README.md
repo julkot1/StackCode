@@ -1,4 +1,4 @@
-# Simple stack-oriented jit compiler
+# Simple stack-oriented VM
 
 ## Operations
 
@@ -23,8 +23,8 @@
 | or |BIN_OR  |  [`a b`] -> [`(a\|\|b)`] |  
 | lb a |BIN_LABEL  |  set label `a`  |  
 | jmp a |BIN_JMP  |  jump to label `a`  |  
-| jme a |BIN_JMP_IF  |  jump to label `a` if [`b`] equals 0 |  
-| jmn a |BIN_JMP_IF_NOT  |  jump to label `a` if [`b`] not equals 0 |  
+| jme a |BIN_JMP_IF  |  jump to label `a` if [`b`] equals `true` |  
+| jmn a |BIN_JMP_IF_NOT  |  jump to label `a` if [`b`] equals `false` |  
 | bor |BIN_BITWISE_OR   |  [`a b`] -> [`(a\|b)`] |
 | band |BIN_BITWISE_AND   |  [`a b`] -> [`(a&b)`] |
 | xor |BIN_BITWISE_XOR   |  [`a b`] -> [`(a xor b)`] |

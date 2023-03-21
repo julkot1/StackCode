@@ -1,9 +1,11 @@
 #pragma once
+#include <stdio.h>
+#include <stdlib.h>
 #ifndef MAIN
 #define MAIN
 
-#include <jit/jit.h>
-
+typedef struct stack_element (*function2)(struct stack_element, struct stack_element);
+typedef struct stack_element (*function1)(struct stack_element);
 typedef enum
 {
     BIN_PUSH,
@@ -105,14 +107,11 @@ typedef struct
 
 typedef struct
 {
-    jit_function_t fn;
-    jit_type_t signature;
-    jit_value_t stack_ptr;
-
     int num_args;
     int is_returning;
     int id;
     int code_size;
+    char name[32];
     operation *code;
 } function;
 typedef struct
@@ -120,11 +119,15 @@ typedef struct
     program_meta meta;
     pool const_pool;
     pool var_pool;
-    jit_label_t *labels;
+    int *labels;
     function *functions;
 
+    struct stack_element *stack;
+    size_t ptr;
 } program;
+
 typedef char word[32];
+
 extern program *__p;
 int main();
 #endif
