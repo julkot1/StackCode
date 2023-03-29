@@ -1,0 +1,24 @@
+::DATA
+    .stack_size 50
+    .labels 3
+    .functions 2
+    .const_pool_size 5
+    .var_pool_size 10
+
+::FUNCTION _GLOBAL
+    push 1
+    push 2
+    add
+    dump
+    push 5
+    vst *0
+    call 1
+    push 23
+    dump
+
+::FUNCTION FOO
+    vld *0
+    push 1
+    add
+    dump
+

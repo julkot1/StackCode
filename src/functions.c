@@ -4,10 +4,38 @@
 #include <stdlib.h>
 #include "string.h"
 
+inline struct stack_element op_add_numbers(struct stack_element a, struct stack_element b)
+{
+    return (struct stack_element){NUMBER, .val.number = (a.val.number + b.val.number)};
+}
+inline struct stack_element op_add_strings(pool_element *p_a, pool_element *p_b)
+{
+    pool_element *element = malloc(sizeof(pool_element));
+    int size = p_a->size + p_b->size;
+    element->size = size;
+    element->type = STRING;
+    element->ref_counter = 1;
+    element->val = malloc(sizeof(char) * size);
+    sprintf((char *)(element->val), "%s%s", (char *)(p_a->val), (char *)(p_b->val));
+    return (struct stack_element){PTR, .val.ptr = element};
+}
+inline struct stack_element op_add_string_number(struct stack_element a, struct stack_element b)
+{
+    return (struct stack_element){};
+}
 inline struct stack_element op_add(struct stack_element a, struct stack_element b)
 {
-    // if (a.t == NUMBER && b.t == NUMBER)
-    return (struct stack_element){NUMBER, .val.number = (a.val.number + b.val.number)};
+    if (a.t == NUMBER && b.t == NUMBER)
+        return op_add_numbers(a, b);
+    else if (a.t == PTR && b.t == PTR)
+    {
+        pool_element *p_a = ((pool_element *)a.val.ptr);
+        pool_element *p_b = ((pool_element *)b.val.ptr);
+        if (p_a->type == STRING && p_b->type == STRING)
+            op_add_strings(p_a, p_b);
+    }
+    return (struct stack_element){};
+
     /*
 else if (a.t == PTR && b.t == PTR)
 {

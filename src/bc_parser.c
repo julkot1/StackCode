@@ -96,7 +96,7 @@ void parse_const_pool(FILE *fd, program *pr)
         if (data[0] = '\"' && data[l - 2] == '\"')
         {
             pool_element *el = &((pr->const_pool.elements)[pr->const_pool.ptr]);
-            el->ref_counter = 0;
+            el->ref_counter = CONST_POOL_PTR;
             el->size = l - 3;
             el->type = STRING;
             el->val = malloc(sizeof(char) * el->size);

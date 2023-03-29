@@ -1,6 +1,9 @@
 #pragma once
 #include <stdio.h>
 #include <stdlib.h>
+
+#define CONST_POOL_PTR -1
+
 #ifndef MAIN
 #define MAIN
 

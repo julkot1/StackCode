@@ -2,6 +2,11 @@
 #include "main.h"
 
 extern struct stack_element op_add(struct stack_element a, struct stack_element b);
+
+extern struct stack_element op_add_numbers(struct stack_element a, struct stack_element b);
+extern struct stack_element op_add_strings(pool_element *p_a, pool_element *p_b);
+extern struct stack_element op_add_string_number(struct stack_element a, struct stack_element b);
+
 extern struct stack_element op_sub(struct stack_element a, struct stack_element b);
 extern struct stack_element op_div(struct stack_element a, struct stack_element b);
 extern struct stack_element op_mul(struct stack_element a, struct stack_element b);

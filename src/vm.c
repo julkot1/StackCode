@@ -1,10 +1,12 @@
 #include "include/vm.h"
 #include <stdlib.h>
 #include "include/functions.h"
+#include "include/gc.h"
 context *current_context;
 
 inline void init()
 {
+    gc_init();
     __p->stack = malloc(sizeof(struct stack_element) * __p->meta.stack_size);
     __p->labels = malloc(sizeof(int) * __p->meta.labels_size);
     __p->ptr = 0;
@@ -86,6 +88,7 @@ inline void op_fun_call(operation op)
 }
 inline void op_fun_end()
 {
+    gc_collect();
     if (current_context->parent == NULL)
         return;
     context *tmp = current_context;
@@ -94,7 +97,15 @@ inline void op_fun_end()
 }
 inline struct stack_element op_pop()
 {
-    return __p->stack[--__p->ptr];
+    struct stack_element el = __p->stack[--__p->ptr];
+    if (el.t == PTR)
+    {
+        pool_element *ptr = el.val.ptr;
+        ptr->ref_counter--;
+        if (ptr->ref_counter == 0)
+            gc_push(&ptr);
+    }
+    return el;
 }
 
 void parse(operation op)

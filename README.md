@@ -46,8 +46,8 @@
 * Each section has a new line at the end
 * File has a new line at the end
 * The lines that belong to the section start with a tab
-* To get element of a const pool use prefix `$` and element id  (eg `$1`)
-* To get element of a const var use prefix `*` and element id  (eg `*1`)
+* To get element of a const pool use prefix `$` and element id  (e.g. `$1`)
+* To get element of a const var use prefix `*` and element id  (e.g. `*1`)
 
 | section  | description  
 |---|---|

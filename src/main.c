@@ -6,6 +6,7 @@
 program *__p;
 int main()
 {
+
     __p = parse_program_bc("program.bc");
     init();
     parse_program();
