@@ -122,11 +122,12 @@ pool_element *read_string_input()
         strcpy(input + input_len, tempbuf);
         input_len += temp_len;
     } while (temp_len == CHUNK - 1 && tempbuf[CHUNK - 2] != '\n');
-
+    input[input_len - 1] = '\0';
     el->ref_counter = 1;
     el->size = input_len;
     el->static_element = 0;
     el->val = input;
+    el->type = STRING;
     return el;
 }
 struct stack_element op_std_in(struct stack_element a)

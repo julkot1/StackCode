@@ -2,8 +2,9 @@
 #include <stdlib.h>
 #include "include/functions.h"
 #include "include/gc.h"
+#include "include/debug.h"
 context *current_context;
-
+vm_mode mode = RUN;
 inline void init()
 {
     gc_init();
@@ -111,10 +112,10 @@ inline struct stack_element op_pop()
 void parse(operation op)
 {
 
-    char c;
-    short s;
-    int i;
-    long l;
+    if (mode == DEBUG)
+    {
+        debug_token(op, current_context);
+    }
 
     switch (op.code)
     {
@@ -220,6 +221,9 @@ void parse(operation op)
         break;
     case BIN_TYPEOF:
         __p->stack[__p->ptr++] = op_typeof(op_pop());
+        break;
+    case BIN_INPUT:
+        __p->stack[__p->ptr++] = op_std_in(op_pop());
         break;
     default:
 

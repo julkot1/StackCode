@@ -6,13 +6,18 @@
 #define GLOBAL_FUNCTION_ID 0
 
 typedef struct context context;
-
+typedef enum
+{
+    RUN,
+    DEBUG
+} vm_mode;
 struct context
 {
     function *fn;
     int state;
     context *parent;
 };
+extern vm_mode mode;
 
 void init();
 void labels_init();

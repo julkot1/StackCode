@@ -12,13 +12,13 @@
     vld *0
     push 10000001
     eq
-    jmn 1
+    jme 1
     push 10000000
     vld *0
     mod
     push 0
     eq
-    jme 2
+    jmn 2
     vld *0
     dump
     lb 2

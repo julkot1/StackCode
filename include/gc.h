@@ -1,7 +1,7 @@
 #pragma once
 #include "main.h"
 
-#define GC_TRASH_SIZE 128
+#define GC_TRASH_SIZE 512
 
 #ifndef GC
 #define GC

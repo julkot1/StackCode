@@ -2,19 +2,19 @@
     .stack_size 50
     .labels 3
     .functions 2
-    .const_pool_size 5
+    .const_pool_size 3
     .var_pool_size 10
 
+::CONST_POOL
+    "abc"
+    "dfdf"
+    "dfdfd"
+
 ::FUNCTION _GLOBAL
-    push 1
-    push 2
-    add
-    dump
-    push 5
+    push String
+    in
     vst *0
-    call 1
-    push 23
-    dump
+    push 2
 
 ::FUNCTION FOO
     vld *0

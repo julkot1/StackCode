@@ -70,6 +70,7 @@ void gc_collect()
         if (!(*el)->static_element)
         {
             free((*el)->val);
+            continue;
         }
         free(*el);
     }
