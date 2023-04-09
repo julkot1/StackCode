@@ -11,14 +11,15 @@
     "dfdfd"
 
 ::FUNCTION _GLOBAL
-    push String
-    in
-    vst *0
+    call 1
     push 2
+    dump
 
 ::FUNCTION FOO
-    vld *0
-    push 1
-    add
+    push String
+    in
+    vst *1
+    vld *1
+    dup
     dump
 

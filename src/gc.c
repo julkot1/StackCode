@@ -67,11 +67,24 @@ void gc_collect()
     pool_element **el;
     while ((el = dequeue()) != NULL)
     {
+        if (mode == DEBUG)
+        {
+            printf("gc freed: %p\n", (*el)->val);
+        }
         if (!(*el)->static_element)
         {
             free((*el)->val);
             continue;
         }
         free(*el);
+    }
+}
+void gc_collect_scope(context *ctx)
+{
+    for (int i = 0; i < ctx->var_ptr; i++)
+    {
+        ctx->declared_vars[i]->ref_counter--;
+        if (ctx->declared_vars[i]->ref_counter == 0)
+            gc_push(&ctx->declared_vars[i]);
     }
 }

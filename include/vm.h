@@ -15,6 +15,8 @@ struct context
 {
     function *fn;
     int state;
+    int var_ptr;
+    pool_element *declared_vars[128];
     context *parent;
 };
 extern vm_mode mode;

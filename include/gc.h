@@ -1,6 +1,6 @@
 #pragma once
 #include "main.h"
-
+#include "include/vm.h"
 #define GC_TRASH_SIZE 512
 
 #ifndef GC
@@ -23,5 +23,5 @@ void gc_collect();
 void gc_init();
 int gc_is_empty();
 int gc_is_full();
-
+void gc_collect_scope(context *ctx);
 #endif

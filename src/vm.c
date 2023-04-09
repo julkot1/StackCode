@@ -5,25 +5,19 @@
 #include "include/debug.h"
 context *current_context;
 vm_mode mode = RUN;
+int flag_store;
 inline void init()
 {
     gc_init();
     __p->stack = malloc(sizeof(struct stack_element) * __p->meta.stack_size);
     __p->labels = malloc(sizeof(int) * __p->meta.labels_size);
     __p->ptr = 0;
+    flag_store = 0;
 }
 inline void labels_init()
 {
 }
-void print_stack(int tick, operation op)
-{
-    printf("tick: %d operation: %d ptr: %ld\n", tick, op.code, __p->ptr);
-    for (size_t i = 0; i < __p->ptr; i++)
-    {
-        printf("| %ld (%d) ", __p->stack[i].val.number, __p->stack[i].t);
-    }
-    printf("\n");
-}
+
 void parse_function()
 {
     for (; current_context->state < current_context->fn->code_size; current_context->state++)
@@ -38,12 +32,18 @@ void parse_program()
     current_context->fn = &__p->functions[GLOBAL_FUNCTION_ID];
     current_context->state = 0;
     current_context->parent = NULL;
+    current_context->var_ptr = 0;
     parse_function();
 }
 
 inline void op_dup()
 {
     __p->stack[__p->ptr] = __p->stack[__p->ptr - 1];
+    if (__p->stack[__p->ptr].t == PTR)
+    {
+        pool_element *ptr = __p->stack[__p->ptr].val.ptr;
+        ptr->ref_counter++;
+    }
     __p->ptr++;
 }
 inline void op_swap()
@@ -85,10 +85,12 @@ inline void op_fun_call(operation op)
     current_context->fn = &__p->functions[op.payload.number];
     current_context->parent = tmp;
     current_context->state = 0;
+    current_context->var_ptr = 0;
     parse_function();
 }
 inline void op_fun_end()
 {
+    gc_collect_scope(current_context);
     gc_collect();
     if (current_context->parent == NULL)
         return;
@@ -99,7 +101,7 @@ inline void op_fun_end()
 inline struct stack_element op_pop()
 {
     struct stack_element el = __p->stack[--__p->ptr];
-    if (el.t == PTR)
+    if (el.t == PTR && !flag_store)
     {
         pool_element *ptr = el.val.ptr;
         ptr->ref_counter--;
@@ -148,7 +150,10 @@ void parse(operation op)
         __p->stack[__p->ptr++] = op_vload(op.payload.number);
         break;
     case BIN_VSTORE:
+        flag_store = 1;
         op_vstore(op_pop(), op.payload.number);
+        current_context->declared_vars[current_context->var_ptr++ % 128] = (__p->var_pool.elements[op.payload.number].val);
+        flag_store = 0;
         break;
     case BIN_CALL:
         op_fun_call(op);

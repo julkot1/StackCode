@@ -180,7 +180,7 @@ void print_stack_element(int id)
 
         if (pel->type == STRING)
         {
-            printf("(%s) \"%s\" (ref: %d)", type_str(STRING), (char *)pel->val, pel->ref_counter);
+            printf("(%s) \"%s\" (ref: %d addr: %p)", type_str(STRING), (char *)pel->val, pel->ref_counter, pel->val);
         }
         return;
     }
@@ -223,8 +223,8 @@ void debug_print_var(int id)
     pool_element el = __p->var_pool.elements[id];
     if (el.type == PTR)
     {
-
-        printf("(%s) \"%s\" (ref: %d) \n", type_str(STRING), (char *)el.val, el.ref_counter);
+        pool_element *elp = el.val;
+        printf("(%s) \"%s\" (ref: %d addr: %p) \n", type_str(elp->type), (char *)elp->val, elp->ref_counter, elp->val);
         return;
     }
     else if (el.static_element)

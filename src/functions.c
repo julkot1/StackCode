@@ -90,6 +90,14 @@ return (struct stack_element){NUMBER, .val.number = (0)};
 }
 inline void op_vstore(struct stack_element a, int index)
 {
+    if (a.t == PTR)
+    {
+        __p->var_pool.elements[index].ref_counter = -1;
+        __p->var_pool.elements[index].static_element = 0;
+        __p->var_pool.elements[index].val = a.val.ptr;
+        __p->var_pool.elements[index].type = a.t;
+        return;
+    }
     __p->var_pool.elements[index].ref_counter = 1;
     __p->var_pool.elements[index].static_element = 1;
     __p->var_pool.elements[index].static_val = a.val;
@@ -146,6 +154,12 @@ struct stack_element op_std_in(struct stack_element a)
 }
 inline struct stack_element op_vload(int index)
 {
+    if (__p->var_pool.elements[index].type == PTR)
+    {
+        ((pool_element *)__p->var_pool.elements[index].val)->ref_counter++;
+        return (struct stack_element){
+            .t = __p->var_pool.elements[index].type, .val.ptr = __p->var_pool.elements[index].val};
+    }
     return (struct stack_element){
         .t = __p->var_pool.elements[index].type, .val = __p->var_pool.elements[index].static_val};
 }
