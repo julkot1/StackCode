@@ -9,7 +9,7 @@ int main()
 
     __p = parse_program_bc("program.bc");
     init();
-    mode = DEBUG;
+    mode = RUN;
     parse_program();
     exit(EXIT_SUCCESS);
 }

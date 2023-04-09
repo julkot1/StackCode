@@ -104,9 +104,12 @@ inline struct stack_element op_pop()
     if (el.t == PTR && !flag_store)
     {
         pool_element *ptr = el.val.ptr;
-        ptr->ref_counter--;
-        if (ptr->ref_counter == 0)
-            gc_push(&ptr);
+        if (!ptr->static_element)
+        {
+            ptr->ref_counter--;
+            if (ptr->ref_counter == 0)
+                gc_push(&ptr);
+        }
     }
     return el;
 }
@@ -152,7 +155,8 @@ void parse(operation op)
     case BIN_VSTORE:
         flag_store = 1;
         op_vstore(op_pop(), op.payload.number);
-        current_context->declared_vars[current_context->var_ptr++ % 128] = (__p->var_pool.elements[op.payload.number].val);
+        if (__p->var_pool.elements[op.payload.number].type == PTR)
+            current_context->declared_vars[current_context->var_ptr++ % 128] = (__p->var_pool.elements[op.payload.number].val);
         flag_store = 0;
         break;
     case BIN_CALL:
