@@ -10,9 +10,9 @@ void gc_init()
     gc_trash.front = -1;
     gc_trash.rear = -1;
 }
-void gc_push(pool_element **el)
+void gc_push(pool_element *el)
 {
-    if ((*el)->ref_counter != 0)
+    if ((el)->ref_counter != 0)
         return;
     if (gc_is_full())
     {
@@ -64,19 +64,19 @@ void gc_collect()
 {
     if (gc_is_empty())
         return;
-    pool_element **el;
+    pool_element *el;
     while ((el = dequeue()) != NULL)
     {
         if (mode == DEBUG)
         {
-            printf("gc freed: %p\n", (*el)->val);
+            printf("gc freed: %p\n", (el)->val);
         }
-        if (!(*el)->static_element)
+        if (!(el)->static_element)
         {
-            free((*el)->val);
+            free((el)->val);
             continue;
         }
-        free(*el);
+        free(el);
     }
 }
 void gc_collect_scope(context *ctx)

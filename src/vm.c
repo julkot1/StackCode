@@ -103,11 +103,16 @@ inline struct stack_element op_pop()
     if (el.t == PTR && !flag_store)
     {
         pool_element *ptr = el.val.ptr;
+
         if (!ptr->static_element)
         {
             ptr->ref_counter--;
             if (ptr->ref_counter == 0)
-                gc_push(&ptr);
+            {
+                gc_push(ptr);
+                if (mode == DEBUG)
+                    printf("gc push: %p\n", ptr->val);
+            }
         }
     }
     return el;

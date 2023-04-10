@@ -14,10 +14,13 @@ inline struct stack_element op_add_strings(pool_element *p_a, pool_element *p_b)
     int size = p_a->size + p_b->size;
     element->size = size;
     element->type = STRING;
+    element->static_element = 0;
     element->ref_counter = 1;
     element->val = malloc(sizeof(char) * size);
     sprintf((char *)(element->val), "%s%s", (char *)(p_a->val), (char *)(p_b->val));
-    return (struct stack_element){PTR, .val.ptr = element};
+    return (struct stack_element){
+        PTR,
+        .val.ptr = element};
 }
 inline struct stack_element op_add_string_number(struct stack_element a, struct stack_element b)
 {
@@ -32,7 +35,7 @@ inline struct stack_element op_add(struct stack_element a, struct stack_element 
         pool_element *p_a = ((pool_element *)a.val.ptr);
         pool_element *p_b = ((pool_element *)b.val.ptr);
         if (p_a->type == STRING && p_b->type == STRING)
-            op_add_strings(p_a, p_b);
+            return op_add_strings(p_a, p_b);
     }
     return (struct stack_element){};
 
