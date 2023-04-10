@@ -130,7 +130,7 @@ typedef struct
     program_meta meta;
     pool const_pool;
     pool var_pool;
-    int *labels;
+    size_t *labels;
     function *functions;
 
     struct stack_element *stack;

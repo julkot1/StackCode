@@ -14,7 +14,7 @@ typedef enum
 struct context
 {
     function *fn;
-    int state;
+    size_t state;
     int var_ptr;
     pool_element *declared_vars[128];
     context *parent;

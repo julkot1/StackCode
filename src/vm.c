@@ -10,7 +10,6 @@ inline void init()
 {
     gc_init();
     __p->stack = malloc(sizeof(struct stack_element) * __p->meta.stack_size);
-    __p->labels = malloc(sizeof(int) * __p->meta.labels_size);
     __p->ptr = 0;
     flag_store = 0;
 }

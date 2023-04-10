@@ -1,6 +1,6 @@
 ::DATA
     .stack_size 50
-    .labels 3
+    .labels 5
     .functions 1
     .const_pool_size 5
     .var_pool_size 10
@@ -10,10 +10,10 @@
     vst *0
     lb 0
     vld *0
-    push 100000001
+    push 5000001
     eq
-    jme 1
-    push 100000000
+    jme 3
+    push 10000000
     vld *0
     mod
     push 0
@@ -27,6 +27,7 @@
     add
     vst *0
     jmp 0
-    lb 1
-    push 1
+    lb 3
+    push 10000000
+    dump
 

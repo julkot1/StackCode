@@ -63,6 +63,7 @@ void parse_function_bc(FILE *fd, char *name, program *pr)
         tmp->op = parse_operation(line, pr);
         tmp->next = malloc(sizeof(op_node));
         tmp = tmp->next;
+
         pr->functions[function_idx].code_size++;
     } while (1);
     pr->functions[function_idx].code = malloc(pr->functions[function_idx].code_size * sizeof(operation));
@@ -71,6 +72,10 @@ void parse_function_bc(FILE *fd, char *name, program *pr)
     int op_idx = 0;
     while (tmp != NULL)
     {
+        if (tmp->op.code == BIN_LABEL)
+        {
+            pr->labels[tmp->op.payload.number] = op_idx;
+        }
         pr->functions[function_idx].code[op_idx] = tmp->op;
         tmp = tmp->next;
         op_idx++;
@@ -125,7 +130,10 @@ void parse_data(FILE *fd, program *pr)
 void parse_data_value(const char *name, const char *val, program *pr)
 {
     if (strcmp(name, TOKEN_DATA_LABELS) == 0)
+    {
         pr->meta.labels_size = atoi(val);
+        pr->labels = malloc(sizeof(int) * pr->meta.labels_size);
+    }
     else if (strcmp(name, TOKEN_DATA_STACK_SIZE) == 0)
         pr->meta.stack_size = atoi(val);
     else if (strcmp(name, TOKEN_DATA_CONST_SIZE) == 0)
