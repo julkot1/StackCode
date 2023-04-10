@@ -15,6 +15,8 @@ char *type_str(type t)
         return TOKEN_TYPE_CHAR;
     else if (PTR == t)
         return TOKEN_TYPE_PTR;
+    else if (ARRAY == t)
+        return TOKEN_TYPE_ARRAY;
     return TOKEN_TYPE_TYPE;
 }
 char *op_str(opcode op)
@@ -91,6 +93,12 @@ char *op_str(opcode op)
         return TOKEN_INPUT;
     else if (BIN_CALL == op)
         return TOKEN_CALL;
+    else if (BIN_ARR_APPEND == op)
+        return TOKEN_ARR_APPEND;
+    else if (BIN_ARR_NEW_STACK == op)
+        return TOKEN_ARR_NEW_STACK;
+    else if (BIN_ARR_STORE == op)
+        return TOKEN_ARR_STORE;
     return TOKEN_EOP;
 }
 void print_value(payload_value val, type t)
@@ -170,10 +178,9 @@ void debug_token(operation op, context *ctx)
         }
     }
 }
-void print_stack_element(int id)
+void print_stack_element(struct stack_element el)
 {
-    struct stack_element el = __p->stack[id];
-    printf("%d: ", __p->ptr - id - 1);
+
     if (el.t == PTR)
     {
         pool_element *pel = el.val.ptr;
@@ -182,9 +189,29 @@ void print_stack_element(int id)
         {
             printf("(%s) \"%s\" (ref: %d addr: %p)", type_str(STRING), (char *)pel->val, pel->ref_counter, pel->val);
         }
+
+        if (pel->type == ARRAY)
+        {
+            array *arr = pel->val;
+            printf("(%s length: %zu, capacity: %zu): [", type_str(ARRAY), arr->length, arr->capacity);
+            for (size_t i = 0; i < arr->length; i++)
+            {
+                print_stack_element(arr->elements[i]);
+                if (i != arr->length - 1)
+                    printf(", ");
+            }
+
+            printf("] (ref: %d addr: %p)", pel->ref_counter, pel->val);
+        }
         return;
     }
     print_value(el.val, el.t);
+}
+void print_element_from_stack(int id)
+{
+    struct stack_element el = __p->stack[id];
+    printf("%d: ", __p->ptr - id - 1);
+    print_stack_element(el);
 }
 
 void debug_list_stack()
@@ -193,7 +220,7 @@ void debug_list_stack()
     printf("stack ptr: %d\n", size);
     for (size_t i = size; i != 0; i--)
     {
-        print_stack_element(i - 1);
+        print_element_from_stack(i - 1);
         if (i != 1)
             printf(" | ");
     }
@@ -223,8 +250,26 @@ void debug_print_var(int id)
     pool_element el = __p->var_pool.elements[id];
     if (el.type == PTR)
     {
-        pool_element *elp = el.val;
-        printf("(%s) \"%s\" (ref: %d addr: %p) \n", type_str(elp->type), (char *)elp->val, elp->ref_counter, elp->val);
+
+        pool_element *pel = el.val;
+        if (pel->type == STRING)
+        {
+            printf("(%s) \"%s\" (ref: %d addr: %p)", type_str(STRING), (char *)pel->val, pel->ref_counter, pel->val);
+        }
+
+        if (pel->type == ARRAY)
+        {
+            array *arr = pel->val;
+            printf("(%s length: %zu, capacity: %zu): [", type_str(ARRAY), arr->length, arr->capacity);
+            for (size_t i = 0; i < arr->length; i++)
+            {
+                print_stack_element(arr->elements[i]);
+                if (i != arr->length - 1)
+                    printf(", ");
+            }
+
+            printf("] (ref: %d addr: %p)\n", pel->ref_counter, pel->val);
+        }
         return;
     }
     else if (el.static_element)

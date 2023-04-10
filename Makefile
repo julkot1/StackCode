@@ -1,4 +1,4 @@
-CFLAGS=-I.
+CFLAGS=-I. -O2
 DEPS = include/*.h
 OBJ = src/*.o
 

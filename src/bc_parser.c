@@ -292,5 +292,11 @@ opcode str_to_opcode(const char *str)
         return BIN_INPUT;
     else if (strcmp(str, TOKEN_CALL) == 0)
         return BIN_CALL;
+    else if (strcmp(str, TOKEN_ARR_NEW_STACK) == 0)
+        return BIN_ARR_NEW_STACK;
+    else if (strcmp(str, TOKEN_ARR_APPEND) == 0)
+        return BIN_ARR_APPEND;
+    else if (strcmp(str, TOKEN_ARR_STORE) == 0)
+        return BIN_ARR_STORE;
     return BIN_EOP;
 }

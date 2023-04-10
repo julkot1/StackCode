@@ -37,4 +37,8 @@ extern struct stack_element op_std_in(struct stack_element a);
 extern void op_vstore(struct stack_element a, int index);
 extern struct stack_element op_vload(int index);
 
+extern struct stack_element op_arr_new(struct stack_element length, struct stack_element capacity, struct stack_element init);
+extern struct stack_element op_arr_append(struct stack_element arr, struct stack_element a);
+extern struct stack_element op_arr_set(struct stack_element arr, struct stack_element idx, struct stack_element a);
+
 char type_name(type t);

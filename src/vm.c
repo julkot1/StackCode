@@ -5,13 +5,14 @@
 #include "include/debug.h"
 context *current_context;
 vm_mode mode = RUN;
-int flag_store;
+int flag_store, flag_arr;
 inline void init()
 {
     gc_init();
     __p->stack = malloc(sizeof(struct stack_element) * __p->meta.stack_size);
     __p->ptr = 0;
     flag_store = 0;
+    flag_arr = 0;
 }
 inline void labels_init()
 {
@@ -103,15 +104,14 @@ inline struct stack_element op_pop()
     if (el.t == PTR && !flag_store)
     {
         pool_element *ptr = el.val.ptr;
-
+        if (flag_arr)
+            return el;
         if (!ptr->static_element)
         {
             ptr->ref_counter--;
             if (ptr->ref_counter == 0)
             {
                 gc_push(ptr);
-                if (mode == DEBUG)
-                    printf("gc push: %p\n", ptr->val);
             }
         }
     }
@@ -125,7 +125,7 @@ void parse(operation op)
     {
         debug_token(op, current_context);
     }
-
+    struct stack_element a, b, c;
     switch (op.code)
     {
 
@@ -237,6 +237,28 @@ void parse(operation op)
         break;
     case BIN_INPUT:
         __p->stack[__p->ptr++] = op_std_in(op_pop());
+        break;
+    case BIN_ARR_NEW_STACK:
+        __p->stack[__p->ptr++] = op_arr_new(op_pop(), op_pop(), op_pop());
+        break;
+    case BIN_ARR_APPEND:
+        flag_store = 1;
+        a = op_pop();
+        flag_store = 0;
+        flag_arr = 1;
+        b = op_pop();
+        flag_arr = 0;
+        __p->stack[__p->ptr++] = op_arr_append(b, a);
+        break;
+    case BIN_ARR_STORE:
+        flag_store = 1;
+        a = op_pop();
+        flag_store = 0;
+        b = op_pop();
+        flag_arr = 1;
+        c = op_pop();
+        flag_arr = 0;
+        __p->stack[__p->ptr++] = op_arr_set(c, b, a);
         break;
     default:
 

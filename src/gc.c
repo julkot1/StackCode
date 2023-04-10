@@ -24,6 +24,8 @@ void gc_push(pool_element *el)
             gc_trash.front = 0;
         gc_trash.rear++;
         gc_trash.items[gc_trash.rear] = el;
+        if (mode == DEBUG)
+            printf("gc push: %p\n", el->val);
     }
 }
 
@@ -60,6 +62,23 @@ pool_element **dequeue()
     }
     return item;
 }
+void gc_check_array(array *arr)
+{
+    for (size_t i = 0; i < arr->length; i++)
+    {
+        if (arr->elements[i].t == PTR)
+        {
+            pool_element *el = arr->elements[i].val.ptr;
+            el->ref_counter--;
+            if (el->ref_counter == 0)
+            {
+                if (el->type == ARRAY)
+                    gc_check_array(el->val);
+                gc_push(el);
+            }
+        }
+    }
+}
 void gc_collect()
 {
     if (gc_is_empty())
@@ -73,6 +92,10 @@ void gc_collect()
         }
         if (!(el)->static_element)
         {
+            if (el->type == ARRAY)
+            {
+                gc_check_array(el->val);
+            }
             free((el)->val);
             continue;
         }
@@ -85,6 +108,6 @@ void gc_collect_scope(context *ctx)
     {
         ctx->declared_vars[i]->ref_counter--;
         if (ctx->declared_vars[i]->ref_counter == 0)
-            gc_push(&ctx->declared_vars[i]);
+            gc_push(ctx->declared_vars[i]);
     }
 }

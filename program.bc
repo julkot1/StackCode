@@ -6,10 +6,11 @@
     .var_pool_size 10
 
 ::FUNCTION _GLOBAL
-    push String
-    in
-    push String
-    in
-    add
-    dump
+    push 5
+    push 10
+    push 2
+    s@arr
+    dup
+    @app
+    vst *0
 

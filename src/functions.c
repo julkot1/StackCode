@@ -255,3 +255,65 @@ inline struct stack_element op_typeof(struct stack_element a)
         return (struct stack_element){TYPE, a.t};
     return (struct stack_element){TYPE, ((pool_element *)a.val.ptr)->type};
 }
+inline struct stack_element op_arr_new(struct stack_element length, struct stack_element capacity, struct stack_element init)
+{
+    array *arr = malloc(sizeof(array));
+    arr->capacity = capacity.val.number;
+    arr->length = length.val.number;
+    arr->elements = calloc(arr->capacity, sizeof(pool_element));
+    for (size_t i = 0; i < arr->length; i++)
+    {
+        arr->elements[i].t = init.t;
+        arr->elements[i].val = init.val;
+        if (init.t == PTR)
+        {
+            ((pool_element *)init.val.ptr)->ref_counter++;
+        }
+    }
+    pool_element *el = malloc(sizeof(pool_element));
+    el->ref_counter = 1;
+    el->size = arr->capacity * sizeof(pool_element);
+    el->type = ARRAY;
+    el->static_element = 0;
+    el->val = arr;
+    return (struct stack_element){.t = PTR, .val.ptr = el};
+}
+inline struct stack_element op_arr_append(struct stack_element arr, struct stack_element a)
+{
+    if (arr.t != PTR)
+        return;
+    pool_element *el = arr.val.ptr;
+    if (el->type != ARRAY)
+        return;
+    array *arr_ptr = el->val;
+    if (arr_ptr->length + 1 >= arr_ptr->capacity)
+        return;
+    if (a.t == PTR)
+    {
+        if (((pool_element *)(a.val.ptr))->val == arr_ptr)
+            return;
+    }
+    arr_ptr->elements[arr_ptr->length].t = a.t;
+    arr_ptr->elements[arr_ptr->length].val = a.val;
+    arr_ptr->length++;
+    return arr;
+}
+inline struct stack_element op_arr_set(struct stack_element arr, struct stack_element idx, struct stack_element a)
+{
+    if (arr.t != PTR)
+        return;
+    pool_element *el = arr.val.ptr;
+    if (el->type != ARRAY)
+        return;
+    array *arr_ptr = el->val;
+    if (arr_ptr->length <= idx.val.number)
+        return;
+    if (a.t == PTR)
+    {
+        if (((pool_element *)(a.val.ptr))->val == arr_ptr)
+            return;
+    }
+    arr_ptr->elements[idx.val.number].t = a.t;
+    arr_ptr->elements[idx.val.number].val = a.val;
+    return arr;
+}

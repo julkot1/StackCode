@@ -46,8 +46,8 @@ typedef enum
     BIN_VSTORE,
     BIN_INPUT,
     BIN_CALL,
-    BIN_PTR_NEW,
-    BIN_PTR_STORE,
+    BIN_ARR_NEW_STACK,
+    BIN_ARR_STORE,
     BIN_ARR_APPEND,
     BIN_EOP
 } opcode;
@@ -58,6 +58,7 @@ typedef enum
     BOOL,
     CHAR,
     PTR,
+    ARRAY,
     TYPE
 } type;
 typedef union
@@ -68,7 +69,11 @@ typedef union
     void *ptr;
     unsigned long all;
 } payload_value;
-
+typedef struct
+{
+    size_t length, capacity;
+    struct stack_element *elements;
+} array;
 typedef struct
 {
     opcode code;
@@ -111,11 +116,6 @@ typedef struct
     pool_element *elements;
 } pool;
 
-typedef struct
-{
-    size_t length, head;
-    struct stack_element *elements;
-} array;
 typedef struct
 {
     int num_args;
