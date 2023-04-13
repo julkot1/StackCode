@@ -33,7 +33,6 @@ file_section get_section(const char *str)
 }
 void parse_section(FILE *fd, file_section section, char *data, program *pr)
 {
-
     if (section == SECTION_DATA)
         parse_data(fd, pr);
     else if (section == SECTION_CONST)
@@ -298,5 +297,7 @@ opcode str_to_opcode(const char *str)
         return BIN_ARR_APPEND;
     else if (strcmp(str, TOKEN_ARR_STORE) == 0)
         return BIN_ARR_STORE;
+    else if (strcmp(str, TOKEN_ARR_LOAD) == 0)
+        return BIN_ARR_LOAD;
     return BIN_EOP;
 }

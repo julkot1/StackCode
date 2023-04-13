@@ -99,6 +99,8 @@ char *op_str(opcode op)
         return TOKEN_ARR_NEW_STACK;
     else if (BIN_ARR_STORE == op)
         return TOKEN_ARR_STORE;
+    else if (BIN_ARR_LOAD == op)
+        return TOKEN_ARR_LOAD;
     return TOKEN_EOP;
 }
 void print_value(payload_value val, type t)

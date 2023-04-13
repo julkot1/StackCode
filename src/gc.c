@@ -95,6 +95,7 @@ void gc_collect()
             if (el->type == ARRAY)
             {
                 gc_check_array(el->val);
+                free(((array *)el->val)->elements);
             }
             free((el)->val);
             continue;

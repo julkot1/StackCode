@@ -49,6 +49,7 @@ typedef enum
     BIN_ARR_NEW_STACK,
     BIN_ARR_STORE,
     BIN_ARR_APPEND,
+    BIN_ARR_LOAD,
     BIN_EOP
 } opcode;
 typedef enum

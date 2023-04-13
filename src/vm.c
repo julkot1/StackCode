@@ -3,9 +3,11 @@
 #include "include/functions.h"
 #include "include/gc.h"
 #include "include/debug.h"
+
 context *current_context;
 vm_mode mode = RUN;
 int flag_store, flag_arr;
+
 inline void init()
 {
     gc_init();
@@ -258,7 +260,12 @@ void parse(operation op)
         flag_arr = 1;
         c = op_pop();
         flag_arr = 0;
-        __p->stack[__p->ptr++] = op_arr_set(c, b, a);
+        __p->stack[__p->ptr++] = op_arr_store(c, b, a);
+        break;
+    case BIN_ARR_LOAD:
+        a = op_pop();
+        b = op_pop();
+        __p->stack[__p->ptr++] = op_arr_load(b, a);
         break;
     default:
 

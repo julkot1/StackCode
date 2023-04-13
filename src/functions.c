@@ -1,6 +1,7 @@
 #include "include/functions.h"
 #include "include/main.h"
 #include "include/bc_parser.h"
+#include "include/gc.h"
 #include <stdlib.h>
 #include "string.h"
 
@@ -22,9 +23,44 @@ inline struct stack_element op_add_strings(pool_element *p_a, pool_element *p_b)
         PTR,
         .val.ptr = element};
 }
-inline struct stack_element op_add_string_number(struct stack_element a, struct stack_element b)
+inline struct stack_element op_add_string_number(pool_element *a, struct stack_element b)
 {
-    return (struct stack_element){};
+    pool_element *el = malloc(sizeof(pool_element));
+    el->type = STRING;
+    size_t size = snprintf(NULL, 0, "%d", b.val.number) + a->size;
+    el->val = malloc(size * sizeof(char));
+    el->size = size;
+    el->ref_counter = 1;
+    sprintf(el->val, "%s%d", (char *)a->val, b.val.number);
+    return (struct stack_element){.t = PTR, .val.ptr = el};
+}
+inline struct stack_element op_add_number_string(struct stack_element a, pool_element *b)
+{
+    pool_element *el = malloc(sizeof(pool_element));
+    el->type = STRING;
+    size_t size = snprintf(NULL, 0, "%d", a.val.number) + b->size;
+    el->val = malloc(size * sizeof(char));
+    el->size = size;
+    el->ref_counter = 1;
+    sprintf(el->val, "%d%s", a.val.number, (char *)b->val);
+    return (struct stack_element){.t = PTR, .val.ptr = el};
+}
+extern struct stack_element op_add_arrays(array *a, array *b)
+{
+    size_t size = a->length + b->length;
+    pool_element *el = malloc(sizeof(pool_element));
+    array *arr = malloc(sizeof(array));
+    arr->capacity = size;
+    arr->length = size;
+    arr->elements = malloc(sizeof(struct stack_element) * arr->capacity);
+    memcpy(arr->elements, a->elements, a->length * sizeof(struct stack_element));
+    memcpy(arr->elements + a->length, b->elements, b->length * sizeof(struct stack_element));
+    el->ref_counter = 1;
+    el->static_element = 0;
+    el->type = ARRAY;
+    el->size = arr->capacity;
+    el->val = arr;
+    return (struct stack_element){.t = PTR, .val.ptr = el};
 }
 inline struct stack_element op_add(struct stack_element a, struct stack_element b)
 {
@@ -36,60 +72,25 @@ inline struct stack_element op_add(struct stack_element a, struct stack_element 
         pool_element *p_b = ((pool_element *)b.val.ptr);
         if (p_a->type == STRING && p_b->type == STRING)
             return op_add_strings(p_a, p_b);
+        if (p_a->type == ARRAY && p_b->type == ARRAY)
+            return op_add_arrays(p_a->val, p_b->val);
+    }
+    else if (a.t == PTR || b.t == PTR)
+    {
+        if (a.t == PTR)
+        {
+            pool_element *p_a = ((pool_element *)a.val.ptr);
+            if (p_a->type == STRING && b.t == NUMBER)
+                return op_add_string_number(p_a, b);
+        }
+        else if (b.t == PTR)
+        {
+            pool_element *p_b = ((pool_element *)b.val.ptr);
+            if (p_b->type == STRING && a.t == NUMBER)
+                return op_add_number_string(a, p_b);
+        }
     }
     return (struct stack_element){};
-
-    /*
-else if (a.t == PTR && b.t == PTR)
-{
-    pool_element *p_a = ((pool_element *)a.val.ptr);
-    pool_element *p_b = ((pool_element *)b.val.ptr);
-    if (p_a->type == STRING && p_b->type == STRING)
-    {
-        int size = p_a->size + p_b->size;
-        pool_element *element = malloc(sizeof(pool_element));
-        element->size = size;
-        element->type = STRING;
-        element->ref_counter = 1;
-        element->val = malloc(sizeof(char) * size);
-        sprintf((char *)(element->val), "%s%s", (char *)(p_a->val), (char *)(p_b->val));
-        return (struct stack_element){PTR, .val.ptr = element};
-    }
-}
-else
-{
-    pool_element *pool_el;
-    struct stack_element const_el;
-    int left_join = 0;
-    if (a.t == PTR)
-    {
-        pool_el = ((pool_element *)a.val.ptr);
-        const_el = b;
-    }
-    else if (b.t == PTR)
-    {
-        pool_el = ((pool_element *)b.val.ptr);
-        const_el = a;
-        left_join = 1;
-    }
-    if (const_el.t == NUMBER)
-    {
-        pool_element *element = malloc(sizeof(pool_element));
-        int size = pool_el->size + 20;
-        element->val = malloc(sizeof(char) * size);
-        element->type = STRING;
-        element->ref_counter = 1;
-        if (left_join)
-            sprintf((char *)(element->val), "%d%s", const_el.val.number, (char *)(pool_el->val));
-        else
-            sprintf((char *)(element->val), "%s%d", (char *)(pool_el->val), const_el.val.number);
-        element->size = strlen((char *)(element->val));
-        return (struct stack_element){PTR, .val.ptr = element};
-    }
-}
-
-return (struct stack_element){NUMBER, .val.number = (0)};
-*/
 }
 inline void op_vstore(struct stack_element a, int index)
 {
@@ -291,14 +292,17 @@ inline struct stack_element op_arr_append(struct stack_element arr, struct stack
     if (a.t == PTR)
     {
         if (((pool_element *)(a.val.ptr))->val == arr_ptr)
+        {
+            ((pool_element *)(a.val.ptr))->ref_counter--;
             return;
+        }
     }
     arr_ptr->elements[arr_ptr->length].t = a.t;
     arr_ptr->elements[arr_ptr->length].val = a.val;
     arr_ptr->length++;
     return arr;
 }
-inline struct stack_element op_arr_set(struct stack_element arr, struct stack_element idx, struct stack_element a)
+inline struct stack_element op_arr_store(struct stack_element arr, struct stack_element idx, struct stack_element a)
 {
     if (arr.t != PTR)
         return;
@@ -311,9 +315,35 @@ inline struct stack_element op_arr_set(struct stack_element arr, struct stack_el
     if (a.t == PTR)
     {
         if (((pool_element *)(a.val.ptr))->val == arr_ptr)
+        {
+            ((pool_element *)(a.val.ptr))->ref_counter--;
             return;
+        }
+    }
+    if (arr_ptr->elements[idx.val.number].t == PTR)
+    {
+        pool_element *e = arr_ptr->elements[idx.val.number].val.ptr;
+        e->ref_counter--;
+        if (e->ref_counter == 0)
+            gc_push(e);
     }
     arr_ptr->elements[idx.val.number].t = a.t;
     arr_ptr->elements[idx.val.number].val = a.val;
     return arr;
+}
+inline struct stack_element op_arr_load(struct stack_element arr, struct stack_element idx)
+{
+    if (arr.t != PTR)
+        return;
+    pool_element *el = arr.val.ptr;
+    if (el->type != ARRAY)
+        return;
+    array *arr_ptr = el->val;
+    if (arr_ptr->length <= idx.val.number)
+        return;
+    if (arr_ptr->elements[idx.val.number].t == PTR)
+    {
+        ((pool_element *)(arr_ptr->elements[idx.val.number].val.ptr))->ref_counter++;
+    }
+    return arr_ptr->elements[idx.val.number];
 }

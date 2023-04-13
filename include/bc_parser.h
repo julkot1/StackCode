@@ -49,9 +49,10 @@
 #define TOKEN_VSTORE "vst"
 #define TOKEN_INPUT "in"
 #define TOKEN_CALL "call"
-#define TOKEN_ARR_STORE "@set"
+#define TOKEN_ARR_STORE "@st"
 #define TOKEN_ARR_APPEND "@app"
 #define TOKEN_ARR_NEW_STACK "s@arr"
+#define TOKEN_ARR_LOAD "@ld"
 
 #define TOKEN_CONST_POOL_ELEMENT '$'
 #define TOKEN_VAR_POOL_ELEMENT '*'

@@ -7,10 +7,7 @@
 
 ::FUNCTION _GLOBAL
     push 5
-    push 10
-    push 2
-    s@arr
-    dup
-    @app
-    vst *0
+    push String
+    in
+    add
 
