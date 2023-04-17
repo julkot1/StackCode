@@ -8,6 +8,7 @@ extern struct stack_element op_add_strings(pool_element *p_a, pool_element *p_b)
 extern struct stack_element op_add_string_number(pool_element *a, struct stack_element b);
 extern struct stack_element op_add_number_string(struct stack_element a, pool_element *b);
 extern struct stack_element op_add_arrays(array *a, array *b);
+extern struct stack_element op_add_array(array *a, struct stack_element b);
 
 extern struct stack_element op_sub(struct stack_element a, struct stack_element b);
 extern struct stack_element op_div(struct stack_element a, struct stack_element b);

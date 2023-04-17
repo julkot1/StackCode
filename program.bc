@@ -7,7 +7,10 @@
 
 ::FUNCTION _GLOBAL
     push 5
-    push String
-    in
+    push 10
+    push 3
+    s@arr
+    push 1
     add
+    push 3
 

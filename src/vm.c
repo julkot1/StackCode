@@ -106,7 +106,7 @@ inline struct stack_element op_pop()
     if (el.t == PTR && !flag_store)
     {
         pool_element *ptr = el.val.ptr;
-        if (flag_arr)
+        if (flag_arr && ptr->type == ARRAY)
             return el;
         if (!ptr->static_element)
         {
@@ -172,19 +172,29 @@ void parse(operation op)
         op_std_out(op_pop());
         break;
     case BIN_ADD:
+        flag_arr = 1;
         __p->stack[__p->ptr++] = op_add(op_pop(), op_pop());
+        flag_arr = 0;
         break;
     case BIN_SUB:
+        flag_arr = 1;
         __p->stack[__p->ptr++] = op_sub(op_pop(), op_pop());
+        flag_arr = 0;
         break;
     case BIN_DIV:
+        flag_arr = 1;
         __p->stack[__p->ptr++] = op_div(op_pop(), op_pop());
+        flag_arr = 0;
         break;
     case BIN_MUL:
+        flag_arr = 1;
         __p->stack[__p->ptr++] = op_mul(op_pop(), op_pop());
+        flag_arr = 0;
         break;
     case BIN_MOD:
+        flag_arr = 1;
         __p->stack[__p->ptr++] = op_mod(op_pop(), op_pop());
+        flag_arr = 0;
         break;
     case BIN_EQUAL:
         __p->stack[__p->ptr++] = op_equal(op_pop(), op_pop());
