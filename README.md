@@ -41,8 +41,8 @@
 | @arr [length capacity default]| BIN_ARR_NEW  |  allocate new array with `length` and `capacity` with default `value`  |
 | s@arr | BIN_ARR_NEW_STACK  |  allocate new array with `length` and `capacity` with default `value` (values from stack in given order) |
 | @app | BIN_ARR_APPEND  |  append new element to array to index [`length+1`] if length + 1 <= capacity |
-| @set | BIN_ARR_SET | set `array` element with given `index` [`index value array`] -> []|
-| @get | BIN_ARR_GET | get element `a` from `array` with given `index` [`index array`] -> [`a`]|
+| @st | BIN_ARR_SET | set `array` element with given `index` [`index value array`] -> []|
+| @ld | BIN_ARR_GET | get element `a` from `array` with given `index` [`index array`] -> [`a`]|
 | eop |BIN_EOP | end of program |
 
 ## Byte code assembler

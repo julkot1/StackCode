@@ -3,7 +3,14 @@
 #include "include/gc.h"
 #include <stdlib.h>
 #include "string.h"
-
+inline struct stack_element op_add_array(array *a, struct stack_element b)
+{
+    for (size_t i = 0; i < a->length; i++)
+    {
+        a->elements[i] = op_add(a->elements[i], b);
+    }
+    return (struct stack_element){};
+}
 inline struct stack_element op_add_numbers(struct stack_element a, struct stack_element b)
 {
     return (struct stack_element){NUMBER, .val.number = (a.val.number + b.val.number)};
@@ -72,7 +79,15 @@ inline struct stack_element op_add(struct stack_element a, struct stack_element 
         if (p_a->type == STRING && p_b->type == STRING)
             return op_add_strings(p_a, p_b);
         if (p_a->type == ARRAY && p_b->type == ARRAY)
+        {
+            p_a->ref_counter--;
+            if (p_a->ref_counter == 0)
+                gc_push(p_a);
+            p_b->ref_counter--;
+            if (p_b->ref_counter == 0)
+                gc_push(p_b);
             return op_add_arrays(p_a->val, p_b->val);
+        }
     }
     else if (a.t == PTR || b.t == PTR)
     {
@@ -81,12 +96,16 @@ inline struct stack_element op_add(struct stack_element a, struct stack_element 
             pool_element *p_a = ((pool_element *)a.val.ptr);
             if (p_a->type == STRING && b.t == NUMBER)
                 return op_add_string_number(p_a, b);
+            op_add_array(p_a->val, b);
+            return a;
         }
         else if (b.t == PTR)
         {
             pool_element *p_b = ((pool_element *)b.val.ptr);
             if (p_b->type == STRING && a.t == NUMBER)
                 return op_add_number_string(a, p_b);
+            op_add_array(p_b->val, a);
+            return b;
         }
     }
     return (struct stack_element){};
@@ -109,9 +128,29 @@ inline void op_vstore(struct stack_element a, int index)
 inline void op_std_out(struct stack_element a)
 {
     if (a.t == NUMBER)
-        printf("%d\n", a.val.number);
+        printf("%d", a.val.number);
     else if (a.t == PTR)
-        printf("%s", (char *)((pool_element *)a.val.ptr)->val);
+    {
+        pool_element *el = (pool_element *)a.val.ptr;
+        if (el->type == STRING)
+        {
+            printf("%s", (char *)el->val);
+        }
+        else if (el->type == ARRAY)
+        {
+            array *ar = el->val;
+            printf("[");
+            for (size_t i = 0; i < ar->length; i++)
+            {
+                op_std_out(ar->elements[i]);
+                if (i != ar->length - 1)
+                {
+                    printf(", ");
+                }
+            }
+            printf("]");
+        }
+    }
     else if (a.t == TYPE)
     {
         printf("%d", a.val.all);
