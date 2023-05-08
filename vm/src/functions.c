@@ -1,5 +1,4 @@
 #include "include/functions.h"
-#include "include/main.h"
 #include "include/bc_parser.h"
 #include "include/gc.h"
 #include <stdlib.h>

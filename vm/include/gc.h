@@ -1,5 +1,5 @@
 #pragma once
-#include "main.h"
+#include "../../include/main.h"
 #include "include/vm.h"
 #define GC_TRASH_SIZE 512
 

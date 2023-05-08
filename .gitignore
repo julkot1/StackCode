@@ -1,5 +1,4 @@
 .vscode
-bc
-debug
+out
 *.bin
 *.o

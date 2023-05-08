@@ -6,7 +6,75 @@
 
 #ifndef MAIN
 #define MAIN
+#define TOKEN_SECTION_DATA "::DATA\n"
+#define TOKEN_SECTION_CONST "::CONST_POOL\n"
+#define TOKEN_SECTION_FUNCTIONS "::FUNCTION"
 
+#define TOKEN_DATA_STACK_SIZE ".stack_size"
+#define TOKEN_DATA_LABELS ".labels"
+#define TOKEN_DATA_FUNCTIONS ".functions"
+#define TOKEN_DATA_CONST_SIZE ".const_pool_size"
+#define TOKEN_DATA_VAR_SIZE ".var_pool_size"
+
+#define TOKEN_PUSH "push"
+#define TOKEN_ADD "add"
+#define TOKEN_SUB "sub"
+#define TOKEN_DIV "div"
+#define TOKEN_MUL "mul"
+#define TOKEN_MOD "mod"
+#define TOKEN_DUMP "dump"
+#define TOKEN_POP "pop"
+#define TOKEN_DUP "dup"
+#define TOKEN_SWAP "swap"
+#define TOKEN_JMP "jmp"
+#define TOKEN_JMP_IF "jme"
+#define TOKEN_JMP_IF_NOT "jmn"
+#define TOKEN_LABEL "lb"
+#define TOKEN_EQUAL "eq"
+#define TOKEN_NOT "not"
+#define TOKEN_NOT_EQUAL "neq"
+#define TOKEN_OR "or"
+#define TOKEN_AND "and"
+#define TOKEN_GREATER "gr"
+#define TOKEN_LOWER "lt"
+#define TOKEN_GREATER_OR_EQUAL "ge"
+#define TOKEN_LOWER_OR_EQUAL "le"
+#define TOKEN_BITWISE_AND "band"
+#define TOKEN_BITWISE_OR "bor"
+#define TOKEN_BITWISE_XOR "xor"
+#define TOKEN_BITWISE_NOT "bnot"
+#define TOKEN_LEFT_SHIFT "shl"
+#define TOKEN_RIGHT_SHIFT "shr"
+#define TOKEN_TYPEOF "typeof"
+#define TOKEN_SIZEOF "sizeof"
+#define TOKEN_EOP "eop"
+#define TOKEN_VLOAD "vld"
+#define TOKEN_VSTORE "vst"
+#define TOKEN_INPUT "in"
+#define TOKEN_CALL "call"
+#define TOKEN_ARR_STORE "@st"
+#define TOKEN_ARR_APPEND "@app"
+#define TOKEN_ARR_NEW_STACK "s@arr"
+#define TOKEN_ARR_LOAD "@ld"
+
+#define TOKEN_CONST_POOL_ELEMENT '$'
+#define TOKEN_VAR_POOL_ELEMENT '*'
+
+#define TOKEN_TYPE_NUMBER "Number"
+#define TOKEN_TYPE_STRING "String"
+#define TOKEN_TYPE_TYPE "Type"
+#define TOKEN_TYPE_PTR "Ptr"
+#define TOKEN_TYPE_BOOL "Bool"
+#define TOKEN_TYPE_CHAR "Char"
+#define TOKEN_TYPE_ARRAY "Arr"
+
+typedef enum
+{
+    SECTION_DATA,
+    SECTION_FUNCTION,
+    SECTION_CONST
+
+} file_section;
 typedef struct stack_element (*function2)(struct stack_element, struct stack_element);
 typedef struct stack_element (*function1)(struct stack_element);
 typedef enum

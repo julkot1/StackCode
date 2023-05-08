@@ -1,5 +1,5 @@
 #pragma once
-#include "main.h"
+#include "../../include/main.h"
 #include "vm.h"
 
 #define DEBUG_NEXT_TOKEN "next"

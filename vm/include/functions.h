@@ -1,5 +1,5 @@
 #pragma once
-#include "main.h"
+#include "../../include/main.h"
 
 extern struct stack_element op_add(struct stack_element a, struct stack_element b);
 

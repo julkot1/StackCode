@@ -1,5 +1,4 @@
 #include "include/bc_parser.h"
-#include "include/main.h"
 #include "include/vm.h"
 #include "include/debug.h"
 
