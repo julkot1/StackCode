@@ -1,0 +1,11 @@
+main {
+    2 2 +
+    print
+    (x y) sum fn {
+        x y +
+        rt {pop}
+    }
+    5 3 sum print
+    "hello" print
+    x "myfile" "rw" sys:open :=
+}
