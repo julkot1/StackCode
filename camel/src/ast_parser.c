@@ -46,13 +46,13 @@ void parser_init()
               " body: <buildin> | <logic> | <math> | <stmt> | <fun> | <struct> | <value> | <scope> ;"
               " stmt :  (\"if\" <scope> (<scope>\"elif\"<scope>)* (\"else\"<scope>)? )"
               "       | (\"for\" <identifier>? <scope>)"
-              "       | (<scope> \"while\" <scope>);"
+              "       | (<scope> \"while\" <scope>)|(\"rt\" <scope>);"
               " fun: (<interface> <identifier> \"fn\" <scope>) | (<interface> \"fn\" <scope>); "
               " struct: <identifier> \"struct\" <interface>; "
               " interface: '('<identifier>*')'; "
-              " logic: \"==\"| \">=\"| \"<=\" | \"!=\" | \"not\" | \"or\" | \"and\" | \"in\" | '<' | '>' ;"
-              " math: \"ls\"| \"rs\"| '&' | '|' | '+' | '-' | '/' | '%' | '*';"
-              " buildin: \"sizeof\"|'@'| (\"rt\" <scope>)|\"typeof\"|\":=\" | \"dup\" | \"swap\" | \"pop\" | \"rot\";"
+              " logic: \"==\"| \">=\"| \"<=\" | \"!=\" | \"not\" | \"or\" | \"and\" | \"<\" | \">\" ;"
+              " math: \"ls\"| \"rs\"| \"&\" | \"|\" | \"+\" | \"-\" | \"/\" | \"%\" | \"*\" | \"xor\" | \"!\";"
+              " buildin: \"sizeof\"|\"typeof\"|\":=\" | \"dup\" | \"swap\" | \"pop\" | \"rot\" | \"input\" | \"print\";"
               " scope: '{' <body>* '}'; "
               " global: <lit> <scope>;",
 
@@ -71,51 +71,4 @@ mpc_val_t *parse_ast(FILE *fd, char *file_name)
     mpc_err_print(result.error);
     mpc_err_delete(result.error);
     return NULL;
-}
-
-int EndsWith(const char *str, const char *suffix)
-{
-    if (!str || !suffix)
-        return 0;
-    size_t lenstr = strlen(str);
-    size_t lensuffix = strlen(suffix);
-    if (lensuffix > lenstr)
-        return 0;
-    return strncmp(str + lenstr - lensuffix, suffix, lensuffix) == 0;
-}
-token_type match_token_type(char *str)
-{
-    if (EndsWith(str, PARSER_NUMBER_TOKEN))
-        return PARSER_NUMBER_TOKEN_TYPE;
-    else if (EndsWith(str, PARSER_LITERAL_TOKEN))
-        return PARSER_LITERAL_TOKEN_TYPE;
-    else if (EndsWith(str, PARSER_IDENTIFIER_TOKEN))
-        return PARSER_IDENTIFIER_TOKEN_TYPE;
-    else if (EndsWith(str, PARSER_STRING_TOKEN))
-        return PARSER_STRING_TOKEN_TYPE;
-    else if (EndsWith(str, PARSER_CHAR_TOKEN))
-        return PARSER_CHAR_TOKEN_TYPE;
-    else if (EndsWith(str, PARSER_VALUE_TOKEN))
-        return PARSER_VALUE_TOKEN_TYPE;
-    else if (EndsWith(str, PARSER_BODY_TOKEN))
-        return PARSER_BODY_TOKEN_TYPE;
-    else if (EndsWith(str, PARSER_STMT_TOKEN))
-        return PARSER_STMT_TOKEN_TYPE;
-    else if (EndsWith(str, PARSER_TYPE_TOKEN))
-        return PARSER_TYPE_TOKEN_TYPE;
-    else if (EndsWith(str, PARSER_SCOPE_TOKEN))
-        return PARSER_SCOPE_TOKEN_TYPE;
-    else if (EndsWith(str, PARSER_FUN_TOKEN))
-        return PARSER_FUN_TOKEN_TYPE;
-    else if (EndsWith(str, PARSER_STRUCT_TOKEN))
-        return PARSER_STRUCT_TOKEN_TYPE;
-    else if (EndsWith(str, PARSER_INTERFACE_TOKEN))
-        return PARSER_INTERFACE_TOKEN_TYPE;
-    else if (EndsWith(str, PARSER_LOGIC_TOKEN))
-        return PARSER_LOGIC_TOKEN_TYPE;
-    else if (EndsWith(str, PARSER_MATH_TOKEN))
-        return PARSER_MATH_TOKEN_TYPE;
-    else if (EndsWith(str, PARSER_BUILD_IN_TOKEN))
-        return PARSER_BUILD_IN_TOKEN_TYPE;
-    return PARSER_CHAR_TOKEN_TYPE;
 }

@@ -2,33 +2,21 @@
 #include <stdio.h>
 #include <string.h>
 
-char *concat(const char *str1, const char *str2)
+void parse_token(token_type t, mpc_ast_t *ast, struct scope_stack *current)
 {
-    size_t len1 = strlen(str1);
-    size_t len2 = strlen(str2);
-    char *result = malloc(len1 + len2 + 1);
-    if (result == NULL)
+    if (t == PARSER_NUMBER_TOKEN_TYPE)
     {
-        return NULL;
+        parse_value_number(ast, current);
     }
-    memcpy(result, str1, len1);
-    memcpy(result + len1, str2, len2 + 1);
-    return result;
-}
-int string_ends_with(const char *str, const char *suffix)
-{
-    size_t str_len = strlen(str);
-    size_t suffix_len = strlen(suffix);
-
-    if (str_len < suffix_len)
+    else if (t == PARSER_STRING_TOKEN_TYPE)
     {
-        return 0;
+        parse_value_string(ast, current);
     }
-
-    const char *end_of_str = str + (str_len - suffix_len);
-    return strcmp(end_of_str, suffix) == 0;
+    else if (is_buildin_operation(t))
+    {
+        parse_operation(ast, current);
+    }
 }
-
 compiler_program_t ast_analyze(mpc_val_t *result)
 {
     mpc_ast_trav_t *trav = mpc_ast_traverse_start(result, mpc_ast_trav_order_pre);
@@ -47,22 +35,47 @@ compiler_program_t ast_analyze(mpc_val_t *result)
     current->scope->elements = malloc(current->scope->size * sizeof(compiler_Element_t));
     do
     {
-
-        if (string_ends_with(ast->tag, "number|regex"))
-        {
-            parse_value(ast, current);
-        }
+        token_type t = match_token_type(ast->tag);
+        parse_token(t, ast, current);
     } while ((ast = mpc_ast_traverse_next(&trav)) != NULL);
     return c_program;
 }
-void parse_value(mpc_ast_t *ast, struct scope_stack *current)
+void parse_value_number(mpc_ast_t *ast, struct scope_stack *current)
 {
-    current->scope->elements[current->element_ptr].type = C_VALUE;
+    current->scope->elements[current->element_ptr].type = CAMEL_VALUE;
     current->scope->elements[current->element_ptr].state = (compiler_state_t){.col = ast->state.col, .row = ast->state.row};
     compiler_Value_t *val = malloc(sizeof(compiler_Value_t));
     val->state = (compiler_state_t){.col = ast->state.col, .row = ast->state.row};
     val->t = NUMBER;
     val->value.number = atoi(ast->contents);
     current->scope->elements[current->element_ptr].ptr = val;
+    current->element_ptr++;
+}
+void parse_value_string(mpc_ast_t *ast, struct scope_stack *current)
+{
+    current->scope->elements[current->element_ptr].type = CAMEL_VALUE;
+    current->scope->elements[current->element_ptr].state = (compiler_state_t){.col = ast->state.col, .row = ast->state.row};
+    compiler_Value_t *val = malloc(sizeof(compiler_Value_t));
+    val->state = (compiler_state_t){.col = ast->state.col, .row = ast->state.row};
+    val->t = STRING;
+    size_t size = strlen(ast->contents);
+    val->value.str = malloc(size - 2);
+    strncpy(val->value.str, ast->contents + 1, size - 2);
+    val->value.str[size - 2] = '\0';
+    current->scope->elements[current->element_ptr]
+        .ptr = val;
+    current->element_ptr++;
+}
+void parse_value_literal(mpc_ast_t *ast, struct scope_stack *current)
+{
+}
+void parse_operation(mpc_ast_t *ast, struct scope_stack *current)
+{
+    compiler_operation_type *op_type = malloc(sizeof(compiler_operation_type));
+    *op_type = match_operation(ast->contents);
+    compiler_Element_t *el = &current->scope->elements[current->element_ptr];
+    el->type = CAMEL_BUILDIN;
+    el->state = (compiler_state_t){.col = ast->state.col, .row = ast->state.row};
+    el->ptr = op_type;
     current->element_ptr++;
 }
