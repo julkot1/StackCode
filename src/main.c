@@ -5,6 +5,7 @@
 
 int main()
 {
+    printf("hello world\n");
     FILE  *in = fopen("app.bc", "r");
     FILE  *out= fopen("app.bin", "wb");
     parse_bin(in,out);
