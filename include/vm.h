@@ -5,6 +5,9 @@
 #ifndef CAMEL_VM_H
 #define CAMEL_VM_H
 
+#define CONST_POOL_ADDR_OFFSET (size_t)0xA0
+#define VAR_POOL_ADDR_OFFSET (size_t)0xC0
+
 #include "stdlib.h"
 typedef enum
 {
@@ -133,7 +136,24 @@ typedef struct
     function *functions;
     void *const_pool_stack;
     element *stack;
+    size_t stack_ptr;
 } program;
 
 typedef char word[32];
+
+void execute(program p);
+
+typedef struct context context;
+
+struct context
+{
+    function *fn;
+    size_t state;
+    context *parent;
+};
+
+void execute_function(context *current_context, program *p);
+void execute_operation(operation op, program *p);
+void op_fun_end();
+
 #endif //CAMEL_VM_H

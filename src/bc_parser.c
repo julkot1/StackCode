@@ -195,7 +195,7 @@ value get_vm_payload_value(type type, bc_type bc_type, const char *str, opcode o
 
 value get_const(const char *str)
 {
-    value result = {.ptr = 0};
+    value result = {.idx = 0};
     for (int i = 0; i < p_bc.meta->const_pool_size; ++i)
     {
         if(strcmp(str, const_key_array[i]) == 0)
@@ -204,6 +204,7 @@ value get_const(const char *str)
             break;
         }
     }
+    result.idx += (CONST_POOL_ADDR_OFFSET << (sizeof(size_t) * 8 - 8));
     return result;
 }
 
