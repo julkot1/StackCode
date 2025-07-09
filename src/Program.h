@@ -16,17 +16,21 @@
 
 namespace stc
 {
-    const std::string BLOCK_NAME = "block";
+
+
+    const std::string BLOCK_NAME     = "block";
 
 
 
     enum NodeType
     {
         STACK_OPERATION,
+        PUSH_OPERATION,
         IF_STATEMENT,
         REPEAT_STATEMENT,
         VAR_ASSIGNMENT,
         FUNCTION_CALL,
+        OPERATION,
     };
 
     class ASTNode {
@@ -36,7 +40,7 @@ namespace stc
         //virtual llvm::Value* codegen() = 0;
     };
 
-    enum StackOperationType
+    enum PushOperationType
     {
          PUSH_SIGNED_I64,
          PUSH_I64,
@@ -52,20 +56,87 @@ namespace stc
          PUSH_SIMPLE_TYPE,
          PUSH_IDENTIFIER
     };
-
-    class StackOperation: public ASTNode
+    enum StackOperationType
     {
-        static StackOperationType getType(StcParser::PushContext *ctx);
-        public:
-
-        StackOperationType stackOperation;
-        std::string token;
-
-        StackOperation(StcParser::PushContext *ctx);
+        STACK_DUP,
+        STACK_ROT,
+        STACK_SWAP,
+        STACK_OVER,
+        STACK_POP
+   };
+    const std::unordered_map<std::string, StackOperationType> stringToStackOp = {
+        {"dup",  STACK_DUP},
+        {"rot",  STACK_ROT},
+        {"swap", STACK_SWAP},
+        {"over", STACK_OVER},
+        {"pop",  STACK_POP}
     };
 
 
 
+    class PushOperation: public ASTNode
+    {
+        static PushOperationType getType(StcParser::PushContext *ctx);
+        public:
+
+        PushOperationType stackOperation;
+        std::string token;
+
+        PushOperation(StcParser::PushContext *ctx);
+    };
+
+
+
+    class StackOperation: public ASTNode
+    {
+        static StackOperationType getType(StcParser::StackOperationContext *ctx);
+    public:
+
+        StackOperationType stackOperation;
+        std::string token;
+
+        StackOperation(StcParser::StackOperationContext *ctx);
+    };
+
+
+
+    enum OperatorType {
+        // Logic
+        OPERATOR_LE,
+        OPERATOR_GE,
+        OPERATOR_NE,
+        OPERATOR_EQ,
+        OPERATOR_LT,
+        OPERATOR_GT,
+        OPERATOR_AND,
+        OPERATOR_OR,
+        OPERATOR_NOT,
+
+        // Arithmetic
+        OPERATOR_ADD,
+        OPERATOR_SUB,
+        OPERATOR_MUL,
+        OPERATOR_DIV,
+        OPERATOR_MOD,
+
+        // Assign
+        OPERATOR_ASSIGN,
+
+        // Built-in
+        OPERATOR_TYPEOF,
+        OPERATOR_LEN,
+        OPERATOR_CALL,
+        OPERATOR_COPY
+    };
+    class Operator : public ASTNode{
+        static OperatorType getType(StcParser::OperaorContext *ctx);
+    public:
+
+        OperatorType operatorType;
+        std::string token;
+
+        Operator(StcParser::OperaorContext *ctx);
+    };
     class Var
     {
     public:

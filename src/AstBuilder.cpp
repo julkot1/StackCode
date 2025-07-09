@@ -128,8 +128,7 @@ void AstBuilder::enterBlock(StcParser::BlockContext *ctx)
 
 void AstBuilder::enterPush(StcParser::PushContext *ctx)
 {
-    auto stackOperation = std::make_unique<stc::StackOperation>(ctx);
-
+    auto stackOperation = std::make_unique<stc::PushOperation>(ctx);
     blockStack.top()->operations.push_back(std::move(stackOperation));
 }
 
@@ -145,6 +144,18 @@ void AstBuilder::enterRepeatBlock(StcParser::RepeatBlockContext *ctx)
     auto RepeatStatement = std::make_unique<stc::RepeatStatement>();
     blockStack.top()->operations.push_back(std::move(RepeatStatement));
 }
+
+void AstBuilder::enterStackOperation(StcParser::StackOperationContext *ctx)
+{
+    auto stackOperation = std::make_unique<stc::StackOperation>(ctx);
+    blockStack.top()->operations.push_back(std::move(stackOperation));
+}
+void AstBuilder::enterOperaor(StcParser::OperaorContext *ctx)
+{
+    auto operation = std::make_unique<stc::Operator>(ctx);
+    blockStack.top()->operations.push_back(std::move(operation));
+}
+
 void AstBuilder::enterProg(StcParser::ProgContext *ctx)
 {
 }

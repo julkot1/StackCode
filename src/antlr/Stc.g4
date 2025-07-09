@@ -60,7 +60,7 @@ stackOperation: 'dup'
               | 'pop'
               | 'over'
               ;
-push          : SIGNED_NUMBER 
+push          : SIGNED_NUMBER
               | NUMBER
               | SIGNED_FLOAT 
               | FLOAT 

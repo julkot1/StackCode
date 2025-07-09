@@ -36,6 +36,10 @@ public:
 
     void enterRepeatBlock(StcParser::RepeatBlockContext *ctx) override;
 
+    void enterStackOperation(StcParser::StackOperationContext *ctx) override;
+
+    void enterOperaor(StcParser::OperaorContext *ctx) override;
+
 };
 
 
