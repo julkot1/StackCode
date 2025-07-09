@@ -80,27 +80,41 @@ void AstBuilder::exitBlock(StcParser::BlockContext *ctx)
     auto currentBlock = std::move(blockStack.top());
     blockStack.pop();
 
-    if (!blockStack.empty()) {
+    if (!blockStack.empty())
+    {
         auto& parentBlock = blockStack.top();
 
-        if (!parentBlock->operations.empty()) {
+        if (!parentBlock->operations.empty())
+        {
             auto& lastOp = parentBlock->operations.back();
 
             // Check if it's an IfStatement
-            if (auto* rawIf = dynamic_cast<stc::IfStatement*>(lastOp.get())) {
-                if (!rawIf->trueBlock) {
+            if (auto* rawIf = dynamic_cast<stc::IfStatement*>(lastOp.get()))
+            {
+                if (!rawIf->trueBlock)
+                {
                     rawIf->trueBlock = std::move(currentBlock);
                     return;
-                } else if (!rawIf->falseBlock) {
+                }
+                if (!rawIf->falseBlock)
+                {
+                    rawIf->isElse = true;
                     rawIf->falseBlock = std::move(currentBlock);
                     return;
                 }
+            }
+            //Check if it's a RepeatStatement
+            else if (auto* rawRepeat = dynamic_cast<stc::RepeatStatement*>(lastOp.get()))
+            {
+                rawRepeat->LoopBlock = std::move(currentBlock);
             }
         }
 
         // Otherwise, just a normal nested block
         parentBlock->blocks.push_back(std::move(currentBlock));
-    } else {
+    }
+    else
+    {
         // Top-level block (should not usually happen here)
         blockStack.push(std::move(currentBlock));
     }
@@ -124,6 +138,12 @@ void AstBuilder::enterIfBlock(StcParser::IfBlockContext *ctx)
 {
     auto IfStatement = std::make_unique<stc::IfStatement>();
     blockStack.top()->operations.push_back(std::move(IfStatement));
+}
+
+void AstBuilder::enterRepeatBlock(StcParser::RepeatBlockContext *ctx)
+{
+    auto RepeatStatement = std::make_unique<stc::RepeatStatement>();
+    blockStack.top()->operations.push_back(std::move(RepeatStatement));
 }
 void AstBuilder::enterProg(StcParser::ProgContext *ctx)
 {

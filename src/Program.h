@@ -93,6 +93,16 @@ namespace stc
         }
     };
 
+    class RepeatStatement: public ASTNode
+    {
+    public:
+        std::unique_ptr<Block> LoopBlock;
+        RepeatStatement()
+        {
+            this->type = REPEAT_STATEMENT;
+        }
+    };
+
     class Function
     {
         int blockIndex = 0;

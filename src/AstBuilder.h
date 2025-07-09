@@ -34,6 +34,8 @@ public:
 
     void enterIfBlock(StcParser::IfBlockContext *ctx) override;
 
+    void enterRepeatBlock(StcParser::RepeatBlockContext *ctx) override;
+
 };
 
 
