@@ -1,5 +1,4 @@
-#include "llvm/IR/IRBuilder.h"
-#include "llvm/IR/LLVMContext.h"
+
 #include "llvm/IR/Module.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/raw_ostream.h"
@@ -13,67 +12,64 @@
 #include "AstBuilder.h"
 
 #include <fstream>
+
+#include "LlvmBuilder.h"
 using namespace llvm;
 using namespace antlr4;
+#include "cli/Cli.h"
 
 
 
 
 
+int main(int argc, char** argv) {
+    auto config = RunCLI(argc, argv);
+    if (config.has_value())
+    {
+        const auto& cfg = config.value();
 
-int main() {
-    std::ifstream stream;
-    stream.open("app.rpn");
-    ANTLRInputStream input(stream);
-    StcLexer lexer(&input);
-    CommonTokenStream tokens(&lexer);
-    StcParser parser(&tokens);
+        auto file =cfg.inputFiles[0];
 
-    tree::ParseTree* tree = parser.prog();
+        std::ifstream stream;
+        stream.open(file);
+        ANTLRInputStream input(stream);
+        StcLexer lexer(&input);
+        CommonTokenStream tokens(&lexer);
+        StcParser parser(&tokens);
 
-    AstBuilder Abuilder;
-    tree::ParseTreeWalker::DEFAULT.walk(&Abuilder, tree);
+        tree::ParseTree* tree = parser.prog();
 
+        AstBuilder Abuilder;
+        tree::ParseTreeWalker::DEFAULT.walk(&Abuilder, tree);
 
-    LLVMContext context;
-    IRBuilder<> builder(context);
-    auto module = std::make_unique<Module>("my_module", context);
+        auto program = &Abuilder.program;
 
-    // Create function: int main()
-    FunctionType *funcType = FunctionType::get(builder.getInt32Ty(), false);
-    Function *mainFunc = Function::Create(funcType, Function::ExternalLinkage, "main", module.get());
+        auto builder = LLVMBuilder(*program);
+        auto module = builder.build();
 
-    // Create entry block
-    BasicBlock *entry = BasicBlock::Create(context, "entry", mainFunc);
-    builder.SetInsertPoint(entry);
+        std::error_code EC;
+        raw_fd_ostream out("main.ll", EC, sys::fs::OF_None);
+        module->print(out, nullptr);
+        out.close();
 
-    // Return 42
-    Value *returnValue = builder.getInt32(42);
-    builder.CreateRet(returnValue);
+        std::cout << "✅ LLVM IR written to main.ll\n";
 
-    // Write IR to file
-    std::error_code EC;
-    raw_fd_ostream out("main.ll", EC, sys::fs::OF_None);
-    module->print(out, nullptr);
-    out.close();
+        // Compile to assembly using llc
+        std::cout << "🔧 Running: llc main.ll -o main.s -relocation-model=pic\n";
+        if (std::system("llc main.ll -o main.s -relocation-model=pic") != 0) {
+            std::cerr << "❌ Error running app.llc\n";
+            return 1;
+        }
 
-    std::cout << "✅ LLVM IR written to main.ll\n";
+        // Compile to executable using clang
+        std::cout << "🔧 Running: clang main.s -o main_exe -fPIE\n";
+        if (std::system("clang main.s -o main_exe -fPIE" ) != 0) {
+            std::cerr << "❌ Error running clang\n";
+            return 1;
+        }
 
-    // Compile to assembly using llc
-    std::cout << "🔧 Running: llc main.ll -o main.s\n";
-    if (std::system("llc main.ll -o main.s") != 0) {
-        std::cerr << "❌ Error running j;l;lk.llc\n";
-        return 1;
+        std::cout << "✅ Compilation complete. Run with ./main_exe\n";
+
     }
-
-    // Compile to executable using clang
-    std::cout << "🔧 Running: clang main.s -o main_exe\n";
-    if (std::system("clang main.s -o main_exe") != 0) {
-        std::cerr << "❌ Error running clang\n";
-        return 1;
-    }
-
-    std::cout << "✅ Compilation complete. Run with ./main_exe\n";
-
     return 0;
 }

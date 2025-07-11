@@ -11,6 +11,17 @@ set(LIBEDIT_LIBRARIES "/usr/lib/libedit.so")
 find_package(LLVM REQUIRED CONFIG)
 include_directories(${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
+
+#Fetch cxxopts
+include(FetchContent)
+FetchContent_Declare(
+        cxxopts
+        GIT_REPOSITORY https://github.com/jarro2783/cxxopts.git
+        GIT_TAG v3.1.1
+)
+FetchContent_MakeAvailable(cxxopts)
+
+
 #Test setup
 include(FetchContent)
 FetchContent_Declare(
