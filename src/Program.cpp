@@ -5,15 +5,64 @@
 #include "Program.h"
 
 #include <llvm/IR/Intrinsics.h>
+#include <bit>
+#include <cstdint>
 
 namespace stc
 {
     std::string Function::getBlockIndex()
     {
-        return BLOCK_NAME + std::to_string(this->blockIndex++) + "df";
+        return BLOCK_NAME + std::to_string(this->blockIndex++);
     }
 
+    void  Function::buildFunctionDefinition(llvm::IRBuilder<> &builder, llvm::Module &module)
+    {
+        this->funcTypeLLVM = llvm::FunctionType::get(builder.getInt32Ty(), false);
+        this->funcLLVM = llvm::Function::Create(funcTypeLLVM, llvm::Function::ExternalLinkage, this->name, module);
+    }
 
+    std::pair<llvm::Value*, llvm::Value*> PushOperation::getLLVMToken(llvm::LLVMContext &context)
+    {
+        llvm::ConstantInt *type;
+        llvm::ConstantInt *value;
+
+        switch (this->stackOperation)
+        {
+            case PUSH_SIGNED_I64:
+            case PUSH_I64:
+                type = llvm::ConstantInt::get(llvm::Type::getInt8Ty(context), STC_I64_TYPE);
+                value = llvm::ConstantInt::get(llvm::Type::getInt64Ty(context), std::stoll(token));
+                break;
+            case PUSH_SIGNED_F64:
+            case PUSH_F64:
+            case PUSH_SIGNED_F64_E:
+            case PUSH_F64_E:
+                type = llvm::ConstantInt::get(llvm::Type::getInt8Ty(context), STC_F64_TYPE);
+                value = llvm::ConstantInt::get(llvm::Type::getInt64Ty(context), std::bit_cast<int64_t>(std::stod(token)));
+                break;
+            case PUSH_BIN_I64:
+                type = llvm::ConstantInt::get(llvm::Type::getInt8Ty(context), STC_I64_TYPE);
+                value = llvm::ConstantInt::get(llvm::Type::getInt64Ty(context), std::stoll(token, nullptr, 2));
+                break;
+            case PUSH_HEX_I64:
+                type = llvm::ConstantInt::get(llvm::Type::getInt8Ty(context), STC_I64_TYPE);
+                value = llvm::ConstantInt::get(llvm::Type::getInt64Ty(context), std::stoll(token, nullptr, 16));
+                break;
+            case PUSH_I8:
+                type = llvm::ConstantInt::get(llvm::Type::getInt8Ty(context), STC_I8_TYPE);
+                value = llvm::ConstantInt::get(llvm::Type::getInt64Ty(context), token[1]);
+                break;
+            case PUSH_STR:
+                break;
+            case PUSH_BOOL:
+                break;
+            case PUSH_SIMPLE_TYPE:
+                break;
+            case PUSH_IDENTIFIER:
+                break;
+        }
+        return std::make_pair(type, value);
+    }
     PushOperation::PushOperation(StcParser::PushContext *ctx)
     {
         this->token = ctx->getText();

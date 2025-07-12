@@ -13,9 +13,24 @@
 #include <llvm/IR/Value.h>
 #include "Type.h"
 #include "antlr/StcParser.h"
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/Module.h>
+#include <llvm/IR/Function.h>
+#include <llvm/IR/Type.h>
 
+#define STC_I64_TYPE 0x0
+#define STC_BOOL_TYPE 0x1
+#define STC_I8_TYPE 0x2
+#define STC_F64_TYPE 0x3
+#define STC_STRING_TYPE 0x4
+#define STC_ARRAY_TYPE 0x5
+#define STC_REF_TYPE 0x6
+#define STC_TYPE_TYPE 0x7
+#define STC_STRUCT_TYPE 0x8
 namespace stc
 {
+
 
 
     const std::string BLOCK_NAME     = "block";
@@ -81,6 +96,8 @@ namespace stc
 
         PushOperationType stackOperation;
         std::string token;
+        // first - type second - value
+        std::pair<llvm::Value*, llvm::Value*> getLLVMToken(llvm::LLVMContext &context);
 
         PushOperation(StcParser::PushContext *ctx);
     };
@@ -146,6 +163,8 @@ namespace stc
     class Block
     {
     public:
+        llvm::BasicBlock *blockLLVM;
+
         std::string name;
         std::vector<std::unique_ptr<Var>> variables;
         std::vector<std::unique_ptr<ASTNode>> operations;
@@ -178,11 +197,18 @@ namespace stc
     {
         int blockIndex = 0;
     public:
+        llvm::FunctionType *funcTypeLLVM;
+        llvm::Function *funcLLVM;
+
+
         std::string name;
         std::vector<std::unique_ptr<Var>> arguments;
         type::Type returnType{};
         std::vector<std::unique_ptr<Block>> blocks;
         std::string getBlockIndex();
+
+        void buildFunctionDefinition(llvm::IRBuilder<> &builder, llvm::Module &module);
+
     };
     class Struct
     {

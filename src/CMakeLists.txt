@@ -12,7 +12,9 @@ add_executable(llvm_ir_gen ${SRC_FILES}
         LlvmBuilder.cpp
         LlvmBuilder.h
         error.cpp
-        error.h)
+        error.h
+        ../stc/lib/arythmetic.c
+)
 
 target_link_libraries(llvm_ir_gen PRIVATE LLVM)
 target_link_libraries(llvm_ir_gen PRIVATE ${LIBEDIT_LIBRARIES} ${LLVM_LIBS} cxxopts)

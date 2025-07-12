@@ -99,7 +99,8 @@ llvm::GlobalVariable*  LLVMBuilder::getOrCreatePrintfFormatStr(const std::string
     return formatStr;
 }
 
-void  LLVMBuilder::printInt(llvm::Value* intValue) {
+void  LLVMBuilder::printInt(llvm::Value* intValue)
+{
     llvm::FunctionCallee printfFunc = getPrintfFunction();
 
     llvm::GlobalVariable* formatStr = getOrCreatePrintfFormatStr("%d\n");
@@ -118,19 +119,74 @@ llvm::Module*  LLVMBuilder::build()
     createStackStorage();
     createStackPtr();
     using namespace llvm;
-    FunctionType *funcType = FunctionType::get(builder->getInt32Ty(), false);
-    Function *mainFunc = Function::Create(funcType, Function::ExternalLinkage, "main", module.get());
 
-    BasicBlock *entry = BasicBlock::Create(context, "entry", mainFunc);
-    builder->SetInsertPoint(entry);
+    for (auto &[_, func] : program.functions)
+    {
+        func->buildFunctionDefinition(*builder, *module);
+    }
 
-    push(createStackValue(builder->getInt64(10), builder->getInt8(1)));
-
-
-    Value* poppedStruct = pop();
-
-    Value* popped_cValue= builder->CreateExtractValue(poppedStruct, 1);
-    printInt(popped_cValue);
-    builder->CreateRet(ConstantInt::get(i32Type, 0));
+    for (auto &[_, func] : program.functions)
+    {
+        buildFunction(func);
+    }
+    // FunctionType *funcType = FunctionType::get(builder->getInt32Ty(), false);
+    // Function *mainFunc = Function::Create(funcType, Function::ExternalLinkage, "main", module.get());
+    //
+    // BasicBlock *entry = BasicBlock::Create(context, "entry", mainFunc);
+    // builder->SetInsertPoint(entry);
+    //
+    // push(createStackValue(builder->getInt64(10), builder->getInt8(1)));
+    //
+    //
+    // Value* poppedStruct = pop();
+    //
+    // Value* popped_cValue= builder->CreateExtractValue(poppedStruct, 1);
+    // printInt(popped_cValue);
+    // builder->CreateRet(ConstantInt::get(i32Type, 0));
     return module.get();
 }
+
+void LLVMBuilder::buildFunction(const std::unique_ptr<stc::Function> & func)
+{
+    for (auto &block: func->blocks)
+    {
+        llvm::BasicBlock *entry = llvm::BasicBlock::Create(context, block->name, func->funcLLVM);
+        builder->SetInsertPoint(entry);
+        block->blockLLVM = entry;
+        buildBlock(block);
+        builder->CreateRet(llvm::ConstantInt::get(i32Type, 0));
+
+    }
+}
+
+void LLVMBuilder::buildBlock(const std::unique_ptr<stc::Block> & block)
+{
+    for (auto &operation : block->operations)
+    {
+        switch (operation->type)
+        {
+            case stc::STACK_OPERATION:
+                break;
+            case stc::PUSH_OPERATION:
+                buildPush(dynamic_cast<stc::PushOperation *>(operation.get()));
+                break;
+            case stc::IF_STATEMENT:
+                break;
+            case stc::REPEAT_STATEMENT:
+                break;
+            case stc::VAR_ASSIGNMENT:
+                break;
+            case stc::FUNCTION_CALL:
+                break;
+            case stc::OPERATION:
+                break;
+        }
+    }
+}
+
+void  LLVMBuilder::buildPush(stc::PushOperation  *pushOperation)
+{
+    auto [type, value] = pushOperation->getLLVMToken(context);
+    push(createStackValue(value, type));
+}
+

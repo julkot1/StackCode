@@ -13,6 +13,7 @@
 #include <llvm/IR/Type.h>
 
 class LLVMBuilder {
+public:
     const stc::Program &program;
 
     llvm::LLVMContext context;
@@ -41,7 +42,7 @@ class LLVMBuilder {
     llvm::GlobalVariable* getOrCreatePrintfFormatStr(const std::string& fmtStr);
     void printInt(llvm::Value* intValue);
 
-public:
+
     explicit LLVMBuilder(const stc::Program &program)
         : program(program),
           module(std::make_unique<llvm::Module>("stc_module", context)),
@@ -51,6 +52,12 @@ public:
          i64Type = llvm::Type::getInt64Ty(context);
          i32Type = llvm::Type::getInt32Ty(context);
     }
+
+    void buildPush(stc::PushOperation  *pushOperation);
+
+    void buildBlock(const std::unique_ptr<stc::Block> & block);
+
+    void buildFunction(const std::unique_ptr<stc::Function> & func);
 
     llvm::Module* build();
 
