@@ -12,9 +12,13 @@
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Type.h>
 
+#include "RuntimeLibs.h"
+
 class LLVMBuilder {
 public:
-    const stc::Program &program;
+    const stc::Program *program;
+
+    RuntimeLibs runtimeLib;
 
     llvm::LLVMContext context;
     std::unique_ptr<llvm::Module> module;
@@ -32,8 +36,9 @@ public:
     void createValueStruct();
     void createStackStorage();
     void createStackPtr();
+    void loadRuntimeLib();
 
-    llvm::Value* push(llvm::Value* val);
+    llvm::Value* push(llvm::Value* val) const;
     llvm::Value* pop() const;
 
     llvm::Value* createStackValue(llvm::Value* value, llvm::Value* type) const;
@@ -43,10 +48,11 @@ public:
     void printInt(llvm::Value* intValue);
 
 
-    explicit LLVMBuilder(const stc::Program &program)
+    explicit LLVMBuilder(const stc::Program *program)
         : program(program),
           module(std::make_unique<llvm::Module>("stc_module", context)),
-          builder(std::make_unique<llvm::IRBuilder<>>(context))
+          builder(std::make_unique<llvm::IRBuilder<>>(context)),
+          runtimeLib(RuntimeLibs(LIB_PATH))
     {
          i8Type = llvm::Type::getInt8Ty(context);
          i64Type = llvm::Type::getInt64Ty(context);

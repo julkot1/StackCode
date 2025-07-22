@@ -31,11 +31,7 @@
 namespace stc
 {
 
-
-
-    const std::string BLOCK_NAME     = "block";
-
-
+    const std::string BLOCK_NAME = "block";
 
     enum NodeType
     {
@@ -193,6 +189,14 @@ namespace stc
         }
     };
 
+    enum FunctionMetadataType
+    {
+        FUNCTION_HELPER,
+        FUNCTION_TOKEN,
+        FUNCTION_LIB_INIT,
+        FUNCTION_GENERATED,
+    };
+
     class Function
     {
         int blockIndex = 0;
@@ -200,7 +204,7 @@ namespace stc
         llvm::FunctionType *funcTypeLLVM;
         llvm::Function *funcLLVM;
 
-
+        std::map<FunctionMetadataType, std::string> metadata;
         std::string name;
         std::vector<std::unique_ptr<Var>> arguments;
         type::Type returnType{};

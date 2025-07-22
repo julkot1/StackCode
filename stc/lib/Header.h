@@ -100,9 +100,4 @@ DEFINE_STC_I64_F64_BINOP(name, op)
     STC_ADD_TO_VTABLE(vtable, STC_F64_TYPE, STC_I64_TYPE, op_name##_F64_I64);\
 }
 
-
-
 #define I64_TO_STR(i) ((const char *)(uintptr_t)(i))
-
-
-

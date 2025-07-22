@@ -18,11 +18,11 @@ void LLVMBuilder::createStackStorage() {
         llvm::GlobalValue::ExternalLinkage,
         zeroInit,
         "stack_storage");
+    stackStorage->setSection(".stc_stack");
 }
 
 void LLVMBuilder::createStackPtr() {
     llvm::Constant* zeroInit = llvm::ConstantInt::get(i32Type, 0);
-
     stackPtr = new llvm::GlobalVariable(
         *module,
         i32Type,
@@ -32,9 +32,18 @@ void LLVMBuilder::createStackPtr() {
         "stack_ptr");
 }
 
-llvm::Value* LLVMBuilder::push(llvm::Value* val) {
-    assert(stackPtr && stackStorage && valueType && "Stack vars must be initialized");
+void LLVMBuilder::loadRuntimeLib()
+{
+    if (!runtimeLib.linkDirectory("stc/bin", *module, context)) {
+        std::cerr << "Failed to load or link runtime bitcode.\n";
+        exit(1);
+    }
 
+}
+
+llvm::Value* LLVMBuilder::push(llvm::Value* val) const
+{
+    assert(stackPtr && stackStorage && valueType && "Stack vars must be initialized");
 
     llvm::Value* ptrVal = builder->CreateLoad(builder->getInt32Ty(), stackPtr);
     llvm::Value* gep = builder->CreateInBoundsGEP(stackStorage->getValueType(), stackStorage,{builder->getInt32(0), ptrVal});
@@ -118,14 +127,15 @@ llvm::Module*  LLVMBuilder::build()
     createValueStruct();
     createStackStorage();
     createStackPtr();
-    using namespace llvm;
+    loadRuntimeLib();
 
-    for (auto &[_, func] : program.functions)
+
+    for (auto &[_, func] : program->functions)
     {
         func->buildFunctionDefinition(*builder, *module);
     }
 
-    for (auto &[_, func] : program.functions)
+    for (auto &[_, func] : program->functions)
     {
         buildFunction(func);
     }

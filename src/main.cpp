@@ -3,26 +3,29 @@
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include <cstdlib>  // for system()
+#include <cstdlib>
 #include <iostream>
+#include <fstream>
 
 #include "antlr4-runtime.h"
 #include "antlr/StcLexer.h"
 #include "antlr/StcParser.h"
+
 #include "AstBuilder.h"
-
-#include <fstream>
-
+#include "cli/Cli.h"
 #include "LlvmBuilder.h"
+
+
 using namespace llvm;
 using namespace antlr4;
-#include "cli/Cli.h"
 
 
 
 
 
-int main(int argc, char** argv) {
+
+int main(int argc, char** argv)
+{
     auto config = RunCLI(argc, argv);
     if (config.has_value())
     {
@@ -44,7 +47,7 @@ int main(int argc, char** argv) {
 
         auto program = &Abuilder.program;
 
-        auto builder = LLVMBuilder(*program);
+        auto builder = LLVMBuilder(program);
         auto module = builder.build();
 
         std::error_code EC;
