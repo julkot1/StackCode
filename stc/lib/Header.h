@@ -55,7 +55,7 @@ typedef stc_value (*stc_function_2_t)(stc_value, stc_value);
 })
 
 #define DEFINE_STC_I64_BINOP(name, op) \
-stc_value helper token(#name "I") name##_int_int(stc_value a, stc_value b) { \
+stc_value helper token(#name "I") name##_I64_I64(stc_value a, stc_value b) { \
 stc_value r = { .type = STC_I64_TYPE, .val = a.val op b.val }; \
 return r; \
 }
@@ -94,7 +94,7 @@ DEFINE_STC_I64_F64_BINOP(name, op)
 
 
 #define STC_ADD_TO_VTABLE_OPERATION(vtable, op_name) {\
-    STC_ADD_TO_VTABLE(vtable, STC_I64_TYPE, STC_I64_TYPE, op_name##_int_int);\
+    STC_ADD_TO_VTABLE(vtable, STC_I64_TYPE, STC_I64_TYPE, op_name##_I64_I64);\
     STC_ADD_TO_VTABLE(vtable, STC_F64_TYPE, STC_F64_TYPE, op_name##_f64_f64);\
     STC_ADD_TO_VTABLE(vtable, STC_I64_TYPE, STC_F64_TYPE, op_name##_I64_F64);\
     STC_ADD_TO_VTABLE(vtable, STC_F64_TYPE, STC_I64_TYPE, op_name##_F64_I64);\

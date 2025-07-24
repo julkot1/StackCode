@@ -11,8 +11,17 @@ RuntimeLibs::RuntimeLibs(const std::string& directoryPath)
 bool RuntimeLibs::isBitcodeFile(const fs::path& path) {
     return path.extension() == ".bc" && fs::is_regular_file(path);
 }
-
-bool RuntimeLib::linkModule(const std::string& filePath, llvm::Module& targetModule, llvm::LLVMContext& context) {
+bool RuntimeLib::linkModule( llvm::Module& targetModule, llvm::LLVMContext& context)
+{
+    llvm::Linker linker(targetModule);
+    auto name = module->getName().str();
+    if (linker.linkInModule(std::move(module))) {
+        std::cerr << "  Linking failed for: " << name << "\n";
+        return false;
+    }
+    return true;
+}
+bool RuntimeLib::loadModule(const std::string& filePath, llvm::Module& targetModule, llvm::LLVMContext& context) {
     if (!fs::exists(filePath) || !fs::is_regular_file(filePath)) {
         std::cerr << "Error: Invalid file path: " << filePath << "\n";
         return false;
@@ -32,25 +41,34 @@ bool RuntimeLib::linkModule(const std::string& filePath, llvm::Module& targetMod
         return false;
     }
 
-    std::unique_ptr<llvm::Module> loadedModule = std::move(moduleOrErr.get());
+    module = std::move(moduleOrErr.get());
 
-    for (auto& F : loadedModule->functions()) {
+    for (auto& F : module->functions()) {
         if (!F.isDeclaration() && F.hasExternalLinkage()) {
             if (!targetModule.getFunction(F.getName())) {
                 llvm::FunctionType* funcType = F.getFunctionType();
-                llvm::Function::Create(funcType, llvm::Function::ExternalLinkage, F.getName(), &targetModule);
-                std::cout << "  Declared: " << F.getName().str() << "\n";
+
+                llvm::Function* declaredFunc = llvm::Function::Create(
+                    funcType,
+                    llvm::Function::ExternalLinkage,
+                    F.getName(),
+                    &targetModule
+                );
+                declaredFunc->copyAttributesFrom(&F);
+
+                declaredFunc->setDSOLocal(true);
+
+                std::cout << "  Declared dso_local: " << F.getName().str() << "\n";
             }
         }
     }
 
-    llvm::Linker linker(targetModule);
-    if (linker.linkInModule(std::move(loadedModule))) {
-        std::cerr << "  Linking failed for: " << filePath << "\n";
-        return false;
-    }
+
+
+
 
     std::cout << "  Successfully linked: " << filePath << "\n";
+    this->functions = this->addFunctions(targetModule);
     return true;
 }
 
@@ -78,7 +96,7 @@ stc::FunctionMetadataType RuntimeLib::getFunctionMetadata(std::string &arg)
 }
 
 
-std::vector<std::unique_ptr<stc::Function>> RuntimeLib::addFunctions()
+std::vector<std::unique_ptr<stc::Function>> RuntimeLib::addFunctions(llvm::Module& targetModule)
 {
     std::map<std::string, std::unique_ptr<stc::Function>>  functions;
     using namespace llvm;
@@ -98,8 +116,7 @@ std::vector<std::unique_ptr<stc::Function>> RuntimeLib::addFunctions()
                         std::vector<std::string> args;
                         for (unsigned i1 = 1; i1 < Annotation->getNumOperands()-1; ++i1)
                         {
-                            auto *StrGV = dyn_cast<GlobalVariable>(
-                           Annotation->getOperand(i1)->stripPointerCasts());
+                            auto *StrGV = dyn_cast<GlobalVariable>(Annotation->getOperand(i1)->stripPointerCasts());
                             std::string AnnotationStr;
                             if (StrGV && StrGV->hasInitializer()) {
                                 if (const auto *CDA = dyn_cast<ConstantDataArray>(StrGV->getInitializer())) {
@@ -118,7 +135,7 @@ std::vector<std::unique_ptr<stc::Function>> RuntimeLib::addFunctions()
                             {
                                 auto func = std::make_unique<stc::Function>();
                                 func->name=".stc."+F->getName().str();
-                                func->funcLLVM = F;
+                                func->funcLLVM = targetModule.getFunction(F->getName());
                                 for (auto &arg : args)
                                 {
                                     auto type = getFunctionMetadata(arg);
@@ -140,7 +157,6 @@ std::vector<std::unique_ptr<stc::Function>> RuntimeLib::addFunctions()
                                 for (auto &arg : args)
                                 {
                                     auto type = getFunctionMetadata(arg);
-                                    std::cout << arg << "\n";
                                     if (type == stc::FUNCTION_TOKEN)
                                     {
                                         const auto idx = arg.find_first_of(':');
@@ -166,7 +182,7 @@ std::vector<std::unique_ptr<stc::Function>> RuntimeLib::addFunctions()
     }
     return functionsVec;
 }
-bool RuntimeLibs::linkDirectory(const std::string& dirPath, llvm::Module& targetModule, llvm::LLVMContext& context) {
+bool RuntimeLibs::loadDirectory(const std::string& dirPath, llvm::Module& targetModule, llvm::LLVMContext& context) {
     if (!fs::is_directory(dirPath)) {
         std::cerr << "Error: Not a directory: " << dirPath << "\n";
         return false;
@@ -186,7 +202,7 @@ bool RuntimeLibs::linkDirectory(const std::string& dirPath, llvm::Module& target
 
         std::cout << "Processing: " << filePath << "\n";
         auto lib = std::make_unique<RuntimeLib>();
-        if (!lib->linkModule(filePath, targetModule, context)) {
+        if (!lib->loadModule(filePath, targetModule, context)) {
             std::cerr << "  Failed to link module: " << filePath << "\n";
             success = false;
         }
@@ -195,3 +211,4 @@ bool RuntimeLibs::linkDirectory(const std::string& dirPath, llvm::Module& target
 
     return success;
 }
+

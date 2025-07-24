@@ -33,10 +33,16 @@ public:
     llvm::Type* i64Type = nullptr;
     llvm::Type* i32Type = nullptr;
 
+    std::map<stc::OperatorType, stc::Function*> operatorMap;
+
+    void createOperatorMap();
     void createValueStruct();
     void createStackStorage();
     void createStackPtr();
     void loadRuntimeLib();
+    void initLibs() const;
+
+    void linkLibs();
 
     llvm::Value* push(llvm::Value* val) const;
     llvm::Value* pop() const;

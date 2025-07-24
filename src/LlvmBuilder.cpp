@@ -1,11 +1,34 @@
 #include "LlvmBuilder.h"
 
-void LLVMBuilder::createValueStruct() {
+void LLVMBuilder::createOperatorMap()
+{
+    for (auto &lib : runtimeLib.libraries)
+    {
+        for (auto &fun : lib->functions)
+        {
+            std::cout << "MAPPING: " << fun->name << "\n";
+            if (fun->metadata.contains(stc::FUNCTION_LIB_INIT))
+            {
+                std::cout << fun->name << "\n";
+                lib->initFunction = &*fun;
+            }
+            else if (fun->metadata.contains(stc::FUNCTION_TOKEN))
+            {
+                auto token = fun->metadata[stc::FUNCTION_TOKEN];
+                std::cout << "MAPPING TOKEN: " << token << "\n";
+            }
+        }
+    }
+}
+
+void LLVMBuilder::createValueStruct()
+{
 
     valueType = llvm::StructType::create(context, {i8Type, i64Type}, "Value");
 }
 
-void LLVMBuilder::createStackStorage() {
+void LLVMBuilder::createStackStorage()
+{
     assert(valueType && "Value struct must be created before stack storage");
 
     llvm::ArrayType* stackType = llvm::ArrayType::get(valueType, 1024);
@@ -34,11 +57,31 @@ void LLVMBuilder::createStackPtr() {
 
 void LLVMBuilder::loadRuntimeLib()
 {
-    if (!runtimeLib.linkDirectory("stc/bin", *module, context)) {
-        std::cerr << "Failed to load or link runtime bitcode.\n";
+    if (!runtimeLib.loadDirectory("stc/bin", *module, context)) {
+        std::cerr << "Failed to load runtime lib.\n";
         exit(1);
     }
 
+}
+
+void LLVMBuilder::initLibs() const
+{
+    for (auto &lib : runtimeLib.libraries)
+    {
+        auto fun = lib->initFunction->funcLLVM;
+        builder->CreateCall(fun);
+    }
+}
+
+void LLVMBuilder::linkLibs()
+{
+    for (auto &lib : runtimeLib.libraries)
+    {
+        if (!lib->linkModule( *module, context)) {
+            std::cerr << "Failed to link runtime lib.\n";
+            exit(1);
+        }
+    }
 }
 
 llvm::Value* LLVMBuilder::push(llvm::Value* val) const
@@ -128,6 +171,8 @@ llvm::Module*  LLVMBuilder::build()
     createStackStorage();
     createStackPtr();
     loadRuntimeLib();
+    createOperatorMap();
+
 
 
     for (auto &[_, func] : program->functions)
@@ -153,14 +198,29 @@ llvm::Module*  LLVMBuilder::build()
     // Value* popped_cValue= builder->CreateExtractValue(poppedStruct, 1);
     // printInt(popped_cValue);
     // builder->CreateRet(ConstantInt::get(i32Type, 0));
+    linkLibs();
     return module.get();
 }
 
 void LLVMBuilder::buildFunction(const std::unique_ptr<stc::Function> & func)
 {
+    bool isMain = false;
+    llvm::BasicBlock *initBlock;
+    if (func->name=="main")
+    {
+        isMain = true;
+        initBlock = llvm::BasicBlock::Create(context, "init", func->funcLLVM);
+        builder->SetInsertPoint(initBlock);
+        initLibs();
+
+    }
     for (auto &block: func->blocks)
     {
         llvm::BasicBlock *entry = llvm::BasicBlock::Create(context, block->name, func->funcLLVM);
+        if (isMain)
+        {
+            builder->CreateBr(entry);
+        }
         builder->SetInsertPoint(entry);
         block->blockLLVM = entry;
         buildBlock(block);

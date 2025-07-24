@@ -20,7 +20,7 @@
 namespace Runtime
 {
     const std::string HELPER_STRING = "helper";
-    const std::string INIT_LIB_STRING = "helper";
+    const std::string INIT_LIB_STRING = "init";
     const std::string TOKEN_STRING = "token:";
 }
 
@@ -28,11 +28,15 @@ namespace Runtime
 class RuntimeLib
 {
 public:
-    llvm::Module *module;
-
+    std::unique_ptr<llvm::Module> module;
+    std::vector<std::unique_ptr<stc::Function>> functions;
+    stc::Function* initFunction;
     stc::FunctionMetadataType getFunctionMetadata(std::string &arg);
-    std::vector<std::unique_ptr<stc::Function>> addFunctions();
-    bool linkModule(const std::string& filePath, llvm::Module& targetModule, llvm::LLVMContext& context);
+    std::vector<std::unique_ptr<stc::Function>> addFunctions(llvm::Module& targetModule);
+
+    bool loadModule(const std::string& filePath, llvm::Module& targetModule, llvm::LLVMContext& context);
+    bool linkModule( llvm::Module& targetModule, llvm::LLVMContext& context);
+    ~RuntimeLib() = default;
 };
 
 
@@ -42,8 +46,7 @@ public:
 
     std::vector<std::unique_ptr<RuntimeLib>> libraries;
     RuntimeLibs(const std::string& directoryPath);
-    bool linkDirectory(const std::string& dirPath, llvm::Module& targetModule, llvm::LLVMContext& context);
-
+    bool loadDirectory(const std::string& dirPath, llvm::Module& targetModule, llvm::LLVMContext& context);
 
 
 private:
