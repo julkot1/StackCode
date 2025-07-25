@@ -13,9 +13,9 @@ DEFINE_STC_BINOP(div, /);
 void lib_init init()
 {
     STC_ADD_TO_VTABLE_OPERATION(add_table, add);
-    STC_ADD_TO_VTABLE_OPERATION(sub_table, add);
-    STC_ADD_TO_VTABLE_OPERATION(mul_table, add);
-    STC_ADD_TO_VTABLE_OPERATION(div_table, add);
+    STC_ADD_TO_VTABLE_OPERATION(sub_table, sub);
+    STC_ADD_TO_VTABLE_OPERATION(mul_table, mul);
+    STC_ADD_TO_VTABLE_OPERATION(div_table, div);
 }
 
 stc_value token("+") add(stc_value a, stc_value b)

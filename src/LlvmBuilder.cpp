@@ -282,5 +282,6 @@ void LLVMBuilder::buildOperation(stc::Operator *operation)
     std::ranges::reverse(args);
 
     llvm::Value* result = builder->CreateCall(fun->funcLLVM, args);
+    printInt( builder->CreateExtractValue(result, 1));
     push(result);
 }
