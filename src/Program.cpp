@@ -107,12 +107,12 @@ namespace stc
     }
 
     Operator::Operator(StcParser::OperaorContext *ctx) {
-        type = STACK_OPERATION;
+        type = OPERATION;
         token = ctx->getText();
-        operatorType = getType(ctx);
+        operatorType = getOperatorType(token);
     }
-    OperatorType Operator::getType(StcParser::OperaorContext *ctx) {
-        std::string str = ctx->getText(); // or ctx->op->getText() if labeled
+     OperatorType getOperatorType(const std::string &str) {
+
         static const std::unordered_map<std::string, OperatorType> map = {
             // Logic
             {"<=", OPERATOR_LE},
@@ -146,6 +146,7 @@ namespace stc
         if (it != map.end()) {
             return it->second;
         }
+        return OPERATOR_UNKOWN;
     }
 
 

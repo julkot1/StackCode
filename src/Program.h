@@ -139,11 +139,13 @@ namespace stc
         OPERATOR_TYPEOF,
         OPERATOR_LEN,
         OPERATOR_CALL,
-        OPERATOR_COPY
+        OPERATOR_COPY,
+        //
+        OPERATOR_UNKOWN
     };
 
     class Operator : public ASTNode{
-        static OperatorType getType(StcParser::OperaorContext *ctx);
+
     public:
 
         OperatorType operatorType;
@@ -227,6 +229,8 @@ namespace stc
         std::map<std::string, std::unique_ptr<Function>> functions;
         std::map<std::string, std::unique_ptr<Struct>>structs;
     };
+    OperatorType getOperatorType(const std::string &str);
+
 }
 
 

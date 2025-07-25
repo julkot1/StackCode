@@ -6,7 +6,6 @@ void LLVMBuilder::createOperatorMap()
     {
         for (auto &fun : lib->functions)
         {
-            std::cout << "MAPPING: " << fun->name << "\n";
             if (fun->metadata.contains(stc::FUNCTION_LIB_INIT))
             {
                 std::cout << fun->name << "\n";
@@ -14,8 +13,13 @@ void LLVMBuilder::createOperatorMap()
             }
             else if (fun->metadata.contains(stc::FUNCTION_TOKEN))
             {
-                auto token = fun->metadata[stc::FUNCTION_TOKEN];
-                std::cout << "MAPPING TOKEN: " << token << "\n";
+                auto tokenString = fun->metadata[stc::FUNCTION_TOKEN];
+                auto token = stc::getOperatorType(tokenString);
+                if (token != stc::OPERATOR_UNKOWN)
+                {
+                    operatorMap[token] = &*fun;
+                }
+
             }
         }
     }
@@ -249,6 +253,8 @@ void LLVMBuilder::buildBlock(const std::unique_ptr<stc::Block> & block)
             case stc::FUNCTION_CALL:
                 break;
             case stc::OPERATION:
+                buildOperation(dynamic_cast<stc::Operator *>(operation.get()));
+
                 break;
         }
     }
@@ -260,3 +266,21 @@ void  LLVMBuilder::buildPush(stc::PushOperation  *pushOperation)
     push(createStackValue(value, type));
 }
 
+void LLVMBuilder::buildOperation(stc::Operator *operation)
+{
+    auto fun = operatorMap[operation->operatorType];
+
+    unsigned numArgs = fun->funcLLVM->arg_size() / 2;
+
+    std::vector<llvm::Value*> args;
+
+    args.reserve(numArgs);
+
+    for (unsigned i = 0; i < numArgs; ++i) {
+        args.push_back(pop());
+    }
+    std::ranges::reverse(args);
+
+    llvm::Value* result = builder->CreateCall(fun->funcLLVM, args);
+    push(result);
+}

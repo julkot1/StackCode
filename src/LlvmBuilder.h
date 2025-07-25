@@ -67,6 +67,8 @@ public:
 
     void buildPush(stc::PushOperation  *pushOperation);
 
+    void buildOperation(stc::Operator * operation);
+
     void buildBlock(const std::unique_ptr<stc::Block> & block);
 
     void buildFunction(const std::unique_ptr<stc::Function> & func);
