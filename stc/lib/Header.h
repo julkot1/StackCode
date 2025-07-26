@@ -54,43 +54,71 @@ typedef stc_value (*stc_function_2_t)(stc_value, stc_value);
     _i;                         \
 })
 
-#define DEFINE_STC_I64_BINOP(name, op) \
+// Macros with explicit result_type argument
+#define DEFINE_STC_I64_BINOP_TYPED(name, op, result_type) \
 stc_value helper token(#name "I") name##_I64_I64(stc_value a, stc_value b) { \
-stc_value r = { .type = STC_I64_TYPE, .val = a.val op b.val }; \
-return r; \
+    stc_value r = { .type = result_type, .val = a.val op b.val }; \
+    return r; \
 }
 
-#define DEFINE_STC_F64_BINOP(name, op) \
+#define DEFINE_STC_F64_BINOP_TYPED(name, op, result_type) \
 stc_value helper token(#name "F") name##_f64_f64(stc_value a, stc_value b) { \
-stc_f64 _a = I64_TO_F64(a.val); \
-stc_f64 _b = I64_TO_F64(b.val); \
-stc_value r = { .type = STC_F64_TYPE, .val = F64_TO_I64(_a op _b) }; \
-return r; \
+    stc_f64 _a = I64_TO_F64(a.val); \
+    stc_f64 _b = I64_TO_F64(b.val); \
+    stc_value r = { .type = result_type, .val = F64_TO_I64(_a op _b) }; \
+    return r; \
 }
 
-
-#define DEFINE_STC_F64_I64_BINOP(name, op) \
+#define DEFINE_STC_F64_I64_BINOP_TYPED(name, op, result_type) \
 stc_value helper token(#name "FI") name##_F64_I64(stc_value a, stc_value b) { \
-stc_i64 _a = a.val; \
-stc_f64 _b = I64_TO_F64(b.val); \
-stc_value r = { .type = STC_F64_TYPE, .val = F64_TO_I64(_a op _b) }; \
-return r; \
+    stc_i64 _a = a.val; \
+    stc_f64 _b = I64_TO_F64(b.val); \
+    stc_value r = { .type = result_type, .val = F64_TO_I64(_a op _b) }; \
+    return r; \
 }
 
-
-#define DEFINE_STC_I64_F64_BINOP(name, op) \
+#define DEFINE_STC_I64_F64_BINOP_TYPED(name, op, result_type) \
 stc_value helper token(#name "IF") name##_I64_F64(stc_value a, stc_value b) { \
-stc_i64 _a = a.val; \
-stc_f64 _b = I64_TO_F64(b.val); \
-stc_value r = { .type = STC_F64_TYPE, .val = F64_TO_I64(_a op _b) }; \
-return r; \
+    stc_i64 _a = a.val; \
+    stc_f64 _b = I64_TO_F64(b.val); \
+    stc_value r = { .type = result_type, .val = F64_TO_I64(_a op _b) }; \
+    return r; \
 }
 
+#define DEFINE_STC_BOOL_BINOP_TYPED(name, op) \
+stc_value helper token(#name "B") name##_BOOL_BOOL(stc_value a, stc_value b) { \
+    stc_value r = { .type = STC_BOOL_TYPE, .val = (a.val op b.val) }; \
+    return r; \
+}
+
+// Macro for unary bool op
+#define DEFINE_STC_BOOL_UNOP_TYPED(name, op) \
+stc_value helper token(#name) name##_BOOL(stc_value a) { \
+    stc_value r = { .type = STC_BOOL_TYPE, .val = (op a.val) }; \
+    return r; \
+}
+
+#define DEFINE_STC_I64_BINOP(name, op) DEFINE_STC_I64_BINOP_TYPED(name, op, STC_I64_TYPE)
+#define DEFINE_STC_F64_BINOP(name, op) DEFINE_STC_F64_BINOP_TYPED(name, op, STC_F64_TYPE)
+#define DEFINE_STC_F64_I64_BINOP(name, op) DEFINE_STC_F64_I64_BINOP_TYPED(name, op, STC_F64_TYPE)
+#define DEFINE_STC_I64_F64_BINOP(name, op) DEFINE_STC_I64_F64_BINOP_TYPED(name, op, STC_F64_TYPE)
+#define DEFINE_STC_BOOL_BINOP(name, op) DEFINE_STC_BOOL_BINOP_TYPED(name, op)
+
+// Default: result types match previous ones
 #define DEFINE_STC_BINOP(name, op) \
-DEFINE_STC_I64_BINOP(name, op) \
-DEFINE_STC_F64_BINOP(name, op) \
-DEFINE_STC_F64_I64_BINOP(name, op) \
-DEFINE_STC_I64_F64_BINOP(name, op)
+    DEFINE_STC_I64_BINOP(name, op) \
+    DEFINE_STC_F64_BINOP(name, op) \
+    DEFINE_STC_F64_I64_BINOP(name, op) \
+    DEFINE_STC_I64_F64_BINOP(name, op) \
+    DEFINE_STC_BOOL_BINOP(name, op)
+
+// Custom: user specifies result type for all combinations
+#define DEFINE_STC_BINOP_TYPED(name, op, t) \
+    DEFINE_STC_I64_BINOP_TYPED(name, op, t) \
+    DEFINE_STC_F64_BINOP_TYPED(name, op, t) \
+    DEFINE_STC_F64_I64_BINOP_TYPED(name, op, t) \
+    DEFINE_STC_I64_F64_BINOP_TYPED(name, op, t) \
+    DEFINE_STC_BOOL_BINOP_TYPED(name, op)
 
 
 #define STC_ADD_TO_VTABLE_OPERATION(vtable, op_name) {\
@@ -98,6 +126,7 @@ DEFINE_STC_I64_F64_BINOP(name, op)
     STC_ADD_TO_VTABLE(vtable, STC_F64_TYPE, STC_F64_TYPE, op_name##_f64_f64);\
     STC_ADD_TO_VTABLE(vtable, STC_I64_TYPE, STC_F64_TYPE, op_name##_I64_F64);\
     STC_ADD_TO_VTABLE(vtable, STC_F64_TYPE, STC_I64_TYPE, op_name##_F64_I64);\
+    STC_ADD_TO_VTABLE(vtable, STC_BOOL_TYPE, STC_BOOL_TYPE, op_name##_BOOL_BOOL);\
 }
 
 #define I64_TO_STR(i) ((const char *)(uintptr_t)(i))
