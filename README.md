@@ -30,7 +30,7 @@ For detailed information about the StackCode language syntax, semantics, and sta
 Compile a StackCode source file:
 
 ```sh
-./stackcode compile <source-file.sc>
+./stackcode compile <source-file.rpn>
 ```
 
 ## License
