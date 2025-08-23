@@ -1,7 +1,7 @@
 #!/bin/bash
 
+cd ../stc
 mkdir -p bin
-
 
 find lib -maxdepth 1 -type f -name "*.c" | while read -r c_file; do
   base_name=$(basename "$c_file" .c)
@@ -16,3 +16,8 @@ find lib -maxdepth 1 -type f -name "*.c" | while read -r c_file; do
     echo "Failed to compile $c_file"
   fi
 done
+
+# Copy bin files to /tmp/stc/bin
+mkdir -p /tmp/stc/bin
+cp bin/*.bc /tmp/stc/bin/
+

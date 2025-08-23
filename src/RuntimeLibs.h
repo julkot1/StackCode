@@ -16,7 +16,7 @@
 #include <iostream>
 #include <map>
 #include "Program.h"
-#define LIB_PATH "stc/bin"
+#define LIB_PATH "/tmp/stc/bin"
 namespace Runtime
 {
     const std::string HELPER_STRING = "helper";

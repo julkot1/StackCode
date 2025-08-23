@@ -61,7 +61,7 @@ void LLVMBuilder::createStackPtr() {
 
 void LLVMBuilder::loadRuntimeLib()
 {
-    if (!runtimeLib.loadDirectory("stc/bin", *module, context)) {
+    if (!runtimeLib.loadDirectory(LIB_PATH, *module, context)) {
         std::cerr << "Failed to load runtime lib.\n";
         exit(1);
     }

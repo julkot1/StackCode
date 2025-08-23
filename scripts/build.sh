@@ -7,3 +7,7 @@ cmake .. "$@"
 make -j$(nproc)
 pwd
 mv src/stcc ..
+#build runtime libraries
+../stc/compile.sh
+#run tests
+../src/test/test.sh

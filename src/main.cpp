@@ -1,4 +1,3 @@
-
 #include "llvm/IR/Module.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/raw_ostream.h"
@@ -19,11 +18,6 @@
 using namespace llvm;
 using namespace antlr4;
 
-
-
-
-
-
 int main(int argc, char** argv)
 {
     auto config = RunCLI(argc, argv);
@@ -31,7 +25,7 @@ int main(int argc, char** argv)
     {
         const auto& cfg = config.value();
 
-        auto file =cfg.inputFiles[0];
+        auto file = cfg.inputFiles[0];
 
         std::ifstream stream;
         stream.open(file);
@@ -50,29 +44,39 @@ int main(int argc, char** argv)
         auto builder = LLVMBuilder(program);
         auto module = builder.build();
 
+        // Use output name from -o flag, default to "main"
+        std::string outBase = "main";
+        if (!cfg.outFile.empty())
+            outBase = cfg.outFile;
+
+        std::string llFile = outBase + ".ll";
+        std::string sFile = outBase + ".s";
+        std::string exeFile = outBase;
+
         std::error_code EC;
-        raw_fd_ostream out("main.ll", EC, sys::fs::OF_None);
+        raw_fd_ostream out(llFile, EC, sys::fs::OF_None);
         module->print(out, nullptr);
         out.close();
 
-        std::cout << "✅ LLVM IR written to main.ll\n";
+        std::cout << "✅ LLVM IR written to " << llFile << "\n";
 
         // Compile to assembly using llc
-        std::cout << "🔧 Running: llc main.ll -o main.s -relocation-model=pic\n";
-        if (std::system("llc main.ll -o main.s -relocation-model=pic") != 0) {
-            std::cerr << "❌ Error running app.llc\n";
+        std::cout << "🔧 Running: llc " << llFile << " -o " << sFile << " -relocation-model=pic\n";
+        std::string llcCmd = "llc " + llFile + " -o " + sFile + " -relocation-model=pic";
+        if (std::system(llcCmd.c_str()) != 0) {
+            std::cerr << "❌ Error running llc\n";
             return 1;
         }
 
         // Compile to executable using clang
-        std::cout << "🔧 Running: clang main.s -o main_exe -fPIE\n";
-        if (std::system("clang main.s -o main_exe -fPIE" ) != 0) {
+        std::cout << "🔧 Running: clang " << sFile << " -o " << exeFile << " -fPIE\n";
+        std::string clangCmd = "clang " + sFile + " -o " + exeFile + " -fPIE";
+        if (std::system(clangCmd.c_str()) != 0) {
             std::cerr << "❌ Error running clang\n";
             return 1;
         }
 
-        std::cout << "✅ Compilation complete. Run with ./main_exe\n";
-
+        std::cout << "✅ Compilation complete. Run with ./" << exeFile << "\n";
     }
     return 0;
 }
