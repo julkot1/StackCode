@@ -188,20 +188,6 @@ llvm::Module*  LLVMBuilder::build()
     {
         buildFunction(func);
     }
-    // FunctionType *funcType = FunctionType::get(builder->getInt32Ty(), false);
-    // Function *mainFunc = Function::Create(funcType, Function::ExternalLinkage, "main", module.get());
-    //
-    // BasicBlock *entry = BasicBlock::Create(context, "entry", mainFunc);
-    // builder->SetInsertPoint(entry);
-    //
-    // push(createStackValue(builder->getInt64(10), builder->getInt8(1)));
-    //
-    //
-    // Value* poppedStruct = pop();
-    //
-    // Value* popped_cValue= builder->CreateExtractValue(poppedStruct, 1);
-    // printInt(popped_cValue);
-    // builder->CreateRet(ConstantInt::get(i32Type, 0));
     linkLibs();
     return module.get();
 }
@@ -209,11 +195,10 @@ llvm::Module*  LLVMBuilder::build()
 void LLVMBuilder::buildFunction(const std::unique_ptr<stc::Function> & func)
 {
     bool isMain = false;
-    llvm::BasicBlock *initBlock;
     if (func->name=="main")
     {
         isMain = true;
-        initBlock = llvm::BasicBlock::Create(context, "init", func->funcLLVM);
+        llvm::BasicBlock *initBlock = llvm::BasicBlock::Create(context, "init", func->funcLLVM);
         builder->SetInsertPoint(initBlock);
         initLibs();
 
@@ -248,6 +233,7 @@ void LLVMBuilder::buildBlock(const std::unique_ptr<stc::Block> & block)
                 buildIf(dynamic_cast<stc::IfStatement *>(operation.get()));
                 break;
             case stc::REPEAT_STATEMENT:
+                buildRepeat(dynamic_cast<stc::RepeatStatement *>(operation.get()));
                 break;
             case stc::VAR_ASSIGNMENT:
                 break;
@@ -255,7 +241,6 @@ void LLVMBuilder::buildBlock(const std::unique_ptr<stc::Block> & block)
                 break;
             case stc::OPERATION:
                 buildOperation(dynamic_cast<stc::Operator *>(operation.get()));
-
                 break;
         }
     }
@@ -320,4 +305,61 @@ void LLVMBuilder::buildIf(stc::IfStatement *ifStmt)
 
     // Continue after if
     builder->SetInsertPoint(contBlock);
+}
+
+void LLVMBuilder::buildRepeat(stc::RepeatStatement *repeatStm)
+{
+    // Pop loop count from stack
+    llvm::Value* countStruct = pop();
+    llvm::Value* countType = builder->CreateExtractValue(countStruct, 0);
+    llvm::Value* countValue = builder->CreateExtractValue(countStruct, 1);
+
+    // Check type is int (STC_I64_TYPE)
+    llvm::Value* isIntType = builder->CreateICmpEQ(countType, builder->getInt8(STC_I64_TYPE));
+
+    llvm::Function* currentFunc = builder->GetInsertBlock()->getParent();
+    llvm::BasicBlock* loopCheckBlock = llvm::BasicBlock::Create(context, "repeat_check", currentFunc);
+    llvm::BasicBlock* loopBodyBlock = llvm::BasicBlock::Create(context, "repeat_body", currentFunc);
+    llvm::BasicBlock* loopEndBlock = llvm::BasicBlock::Create(context, "repeat_end", currentFunc);
+    llvm::BasicBlock* errorBlock = llvm::BasicBlock::Create(context, "repeat_type_error", currentFunc);
+
+    // Only enter loop if type is int, else throw
+    builder->CreateCondBr(isIntType, loopCheckBlock, errorBlock);
+
+    // Error block: throw exception
+    //TO-DO: Replace with proper error handling
+    builder->SetInsertPoint(errorBlock);
+    llvm::FunctionCallee printfFunc = getPrintfFunction();
+    llvm::GlobalVariable* formatStr = getOrCreatePrintfFormatStr("Repeat expects int type!\n");
+    llvm::Value *zero = llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 0);
+    llvm::Value *indices[] = {zero, zero};
+    llvm::Value *formatStrPtr = builder->CreateInBoundsGEP(
+        formatStr->getValueType(), formatStr, indices, "formatStrPtr");
+    builder->CreateCall(printfFunc, {formatStrPtr});
+    builder->CreateUnreachable();
+
+    // Loop variables (no PHI)
+    builder->SetInsertPoint(loopCheckBlock);
+    llvm::AllocaInst* iVar = builder->CreateAlloca(builder->getInt64Ty(), nullptr, "i");
+    builder->CreateStore(builder->getInt64(0), iVar);
+
+    llvm::BasicBlock* loopCondBlock = llvm::BasicBlock::Create(context, "repeat_cond", currentFunc);
+    builder->CreateBr(loopCondBlock);
+
+    // Loop condition
+    builder->SetInsertPoint(loopCondBlock);
+    llvm::Value* iVal = builder->CreateLoad(builder->getInt64Ty(), iVar);
+    llvm::Value* cond = builder->CreateICmpSLT(iVal, countValue);
+    builder->CreateCondBr(cond, loopBodyBlock, loopEndBlock);
+
+    // Loop body
+    builder->SetInsertPoint(loopBodyBlock);
+    if (repeatStm->LoopBlock)
+        buildBlock(repeatStm->LoopBlock);
+    llvm::Value* nextI = builder->CreateAdd(iVal, builder->getInt64(1));
+    builder->CreateStore(nextI, iVar);
+    builder->CreateBr(loopCondBlock);
+
+    // Continue after loop
+    builder->SetInsertPoint(loopEndBlock);
 }

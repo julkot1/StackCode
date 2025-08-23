@@ -69,7 +69,9 @@ public:
 
     void buildOperation(stc::Operator * operation);
 
-    void buildIf(stc::IfStatement * get);
+    void buildIf(stc::IfStatement * ifStm);
+
+    void buildRepeat(stc::RepeatStatement * repeatStm);
 
     void buildBlock(const std::unique_ptr<stc::Block> & block);
 
