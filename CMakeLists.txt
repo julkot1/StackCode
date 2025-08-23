@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(llvm_ir_project LANGUAGES C CXX)
+project(stcc LANGUAGES C CXX)
 
 cmake_policy(SET CMP0135 NEW)
 set(CMAKE_CXX_STANDARD 20)
