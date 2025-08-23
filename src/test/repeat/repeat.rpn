@@ -1,0 +1,12 @@
+
+fun main {
+    4 repeat {
+        1 print
+        2 repeat {
+            3 print
+        }
+    }
+    4 repeat {
+        10 print
+    }
+}

@@ -1,9 +1,14 @@
 
 fun main {
     2 2 == if {
-        0 1 +
+        1 print
+        3 3 != if {
+            4 print
+        } else {
+            5 print
+        }
     } else {
-        1 1 +
+        2 print
     }
-    2 2 +
+    2 2 + print
 }

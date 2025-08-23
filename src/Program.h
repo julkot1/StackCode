@@ -36,7 +36,7 @@ namespace stc
         IF_STATEMENT,
         REPEAT_STATEMENT,
         VAR_ASSIGNMENT,
-        FUNCTION_CALL,
+        IDENTIFIER,
         OPERATION,
     };
 
@@ -92,6 +92,19 @@ namespace stc
         std::pair<llvm::Value*, llvm::Value*> getLLVMToken(llvm::LLVMContext &context);
 
         PushOperation(StcParser::PushContext *ctx);
+    };
+    enum IdentifierType
+    {
+        IDENTIFIER_VAR,
+        IDENTIFIER_FUNC,
+        IDENTIFIER_UNKNOWN
+    };
+    class Identifier: public ASTNode
+    {
+    public:
+        IdentifierType idType;
+        std::string token;
+        Identifier(StcParser::IdentifierContext *ctx);
     };
 
 

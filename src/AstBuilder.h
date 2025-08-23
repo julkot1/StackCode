@@ -40,6 +40,8 @@ public:
 
     void enterOperaor(StcParser::OperaorContext *ctx) override;
 
+    void enterIdentifier(StcParser::IdentifierContext *ctx) override;
+
 };
 
 

@@ -48,7 +48,8 @@ void LLVMBuilder::createStackStorage()
     stackStorage->setSection(".stc_stack");
 }
 
-void LLVMBuilder::createStackPtr() {
+void LLVMBuilder::createStackPtr()
+{
     llvm::Constant* zeroInit = llvm::ConstantInt::get(i32Type, 0);
     stackPtr = new llvm::GlobalVariable(
         *module,
@@ -65,7 +66,6 @@ void LLVMBuilder::loadRuntimeLib()
         std::cerr << "Failed to load runtime lib.\n";
         exit(1);
     }
-
 }
 
 void LLVMBuilder::initLibs() const
@@ -218,6 +218,17 @@ void LLVMBuilder::buildFunction(const std::unique_ptr<stc::Function> & func)
     }
 }
 
+void LLVMBuilder::buildIdentifier(const stc::Identifier * identifier)
+{
+    //TO-DO: Implement identifier handling
+    if (identifier->token == "print")
+    {
+        const auto a = pop();
+        const auto value = builder->CreateExtractValue(a, 1);
+        printInt( value);
+    }
+}
+
 void LLVMBuilder::buildBlock(const std::unique_ptr<stc::Block> & block)
 {
     for (auto &operation : block->operations)
@@ -237,7 +248,8 @@ void LLVMBuilder::buildBlock(const std::unique_ptr<stc::Block> & block)
                 break;
             case stc::VAR_ASSIGNMENT:
                 break;
-            case stc::FUNCTION_CALL:
+            case stc::IDENTIFIER:
+                buildIdentifier(dynamic_cast<stc::Identifier *>(operation.get()));
                 break;
             case stc::OPERATION:
                 buildOperation(dynamic_cast<stc::Operator *>(operation.get()));
@@ -252,11 +264,11 @@ void  LLVMBuilder::buildPush(stc::PushOperation  *pushOperation)
     push(createStackValue(value, type));
 }
 
-void LLVMBuilder::buildOperation(stc::Operator *operation)
+void LLVMBuilder::buildOperation(const stc::Operator *operation)
 {
-    auto fun = operatorMap[operation->operatorType];
+    const auto fun = operatorMap[operation->operatorType];
 
-    unsigned numArgs = fun->funcLLVM->arg_size() / 2;
+    const unsigned numArgs = fun->funcLLVM->arg_size() / 2;
 
     std::vector<llvm::Value*> args;
 
@@ -268,7 +280,7 @@ void LLVMBuilder::buildOperation(stc::Operator *operation)
     std::ranges::reverse(args);
 
     llvm::Value* result = builder->CreateCall(fun->funcLLVM, args);
-    printInt( builder->CreateExtractValue(result, 1));
+
     push(result);
 }
 
@@ -338,7 +350,7 @@ void LLVMBuilder::buildRepeat(stc::RepeatStatement *repeatStm)
     builder->CreateCall(printfFunc, {formatStrPtr});
     builder->CreateUnreachable();
 
-    // Loop variables (no PHI)
+    // Loop variable
     builder->SetInsertPoint(loopCheckBlock);
     llvm::AllocaInst* iVar = builder->CreateAlloca(builder->getInt64Ty(), nullptr, "i");
     builder->CreateStore(builder->getInt64(0), iVar);

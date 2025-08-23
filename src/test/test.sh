@@ -35,13 +35,12 @@ for rpn_file in "${test_files[@]}"; do
     if diff -u "$expected" "$out"; then
         echo "Test $test_name: PASS"
         passed=$((passed+1))
+        rm -f "$exe" "$out" "${test_dir}/${test_name}.ll" "${test_dir}/${test_name}.s"
     else
         echo "Test $test_name: FAIL"
         failed=$((failed+1))
     fi
 
-    # Remove generated files after test
-    rm -f "$exe" "$out" "${test_dir}/${test_name}.ll" "${test_dir}/${test_name}.s"
 done
 
 if [ "$found" -eq 0 ]; then

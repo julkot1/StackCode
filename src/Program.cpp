@@ -96,6 +96,11 @@ namespace stc
     }
 
 
+    Identifier::Identifier(StcParser::IdentifierContext *ctx) : idType(IDENTIFIER_UNKNOWN), token(ctx->getText())
+    {
+        this->type = IDENTIFIER;
+    }
+
     StackOperationType StackOperation::getType(StcParser::StackOperationContext* ctx)
     {
 
