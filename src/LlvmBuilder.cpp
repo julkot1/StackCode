@@ -15,7 +15,7 @@ void LLVMBuilder::createOperatorMap()
             {
                 auto tokenString = fun->metadata[stc::FUNCTION_TOKEN];
                 auto token = stc::getOperatorType(tokenString);
-                if (token != stc::OPERATOR_UNKOWN)
+                if (token != stc::OPERATOR_UNKNOWN)
                 {
                     operatorMap[token] = &*fun;
                 }

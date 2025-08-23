@@ -146,7 +146,7 @@ namespace stc
         if (it != map.end()) {
             return it->second;
         }
-        return OPERATOR_UNKOWN;
+        return OPERATOR_UNKNOWN;
     }
 
 

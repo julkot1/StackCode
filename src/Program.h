@@ -137,7 +137,7 @@ namespace stc
         OPERATOR_CALL,
         OPERATOR_COPY,
         //
-        OPERATOR_UNKOWN
+        OPERATOR_UNKNOWN
     };
 
     class Operator : public ASTNode{
