@@ -245,6 +245,7 @@ void LLVMBuilder::buildBlock(const std::unique_ptr<stc::Block> & block)
                 buildPush(dynamic_cast<stc::PushOperation *>(operation.get()));
                 break;
             case stc::IF_STATEMENT:
+                buildIf(dynamic_cast<stc::IfStatement *>(operation.get()));
                 break;
             case stc::REPEAT_STATEMENT:
                 break;
@@ -284,4 +285,39 @@ void LLVMBuilder::buildOperation(stc::Operator *operation)
     llvm::Value* result = builder->CreateCall(fun->funcLLVM, args);
     printInt( builder->CreateExtractValue(result, 1));
     push(result);
+}
+
+void LLVMBuilder::buildIf(stc::IfStatement *ifStmt)
+{
+    // Pop condition value from stack
+    llvm::Value* condStruct = pop();
+    llvm::Value* condValue = builder->CreateExtractValue(condStruct, 1);
+
+    // Compare condition value to zero (not zero means true)
+    llvm::Value* cond = builder->CreateICmpNE(condValue, builder->getInt64(0));
+
+    llvm::Function* currentFunc = builder->GetInsertBlock()->getParent();
+
+    // Create blocks for true and false branches and continuation
+    llvm::BasicBlock* trueBlock = llvm::BasicBlock::Create(context, "if_true", currentFunc);
+    llvm::BasicBlock* falseBlock = llvm::BasicBlock::Create(context, "if_false", currentFunc);
+    llvm::BasicBlock* contBlock = llvm::BasicBlock::Create(context, "if_cont", currentFunc);
+
+    // Branch based on condition
+    builder->CreateCondBr(cond, trueBlock, falseBlock);
+
+    // True branch
+    builder->SetInsertPoint(trueBlock);
+    if (ifStmt->trueBlock)
+        buildBlock(ifStmt->trueBlock);
+    builder->CreateBr(contBlock);
+
+    // False branch
+    builder->SetInsertPoint(falseBlock);
+    if (ifStmt->falseBlock)
+        buildBlock(ifStmt->falseBlock);
+    builder->CreateBr(contBlock);
+
+    // Continue after if
+    builder->SetInsertPoint(contBlock);
 }
