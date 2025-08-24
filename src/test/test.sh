@@ -29,7 +29,7 @@ for rpn_file in "${test_files[@]}"; do
 
     echo "Running test: $test_name in $test_dir"
 
-    "$COMPILER" compile "$rpn_file" -o "$exe"
+    "$COMPILER" compile "$rpn_file" -o "$exe" > /dev/null
     "$exe" > "$out"
 
     if diff -u "$expected" "$out"; then

@@ -60,6 +60,8 @@ stc_value token("+") add(stc_value a, stc_value b)
     {
         return add_func(a, b);
     }
+	return (stc_value){.type = STC_I64_TYPE, .val = 0};
+
 }
 
 stc_value token("-") sub(stc_value a, stc_value b)
@@ -69,6 +71,7 @@ stc_value token("-") sub(stc_value a, stc_value b)
     {
         return sub_func(a, b);
     }
+	return (stc_value){.type = STC_I64_TYPE, .val = 0};
 }
 
 stc_value token("*") mul(stc_value a, stc_value b)
@@ -78,6 +81,7 @@ stc_value token("*") mul(stc_value a, stc_value b)
     {
         return mul_func(a, b);
     }
+	return (stc_value){.type = STC_I64_TYPE, .val = 0};
 }
 
 stc_value token("/") div(stc_value a, stc_value b)
@@ -87,6 +91,7 @@ stc_value token("/") div(stc_value a, stc_value b)
     {
         return div_func(a, b);
     }
+	return (stc_value){.type = STC_I64_TYPE, .val = 0};
 }
 
 stc_value token("<=") le(stc_value a, stc_value b)
@@ -94,6 +99,7 @@ stc_value token("<=") le(stc_value a, stc_value b)
     stc_function_2_t le_func = le_table[a.type][b.type];
     if (le_func != NULL)
         return le_func(a, b);
+	return (stc_value){.type = STC_I64_TYPE, .val = 0};
 }
 
 stc_value token("<") lt(stc_value a, stc_value b)
@@ -101,6 +107,7 @@ stc_value token("<") lt(stc_value a, stc_value b)
     stc_function_2_t lt_func = lt_table[a.type][b.type];
     if (lt_func != NULL)
         return lt_func(a, b);
+	return (stc_value){.type = STC_I64_TYPE, .val = 0};
 }
 
 stc_value token(">") gt(stc_value a, stc_value b)
@@ -108,6 +115,7 @@ stc_value token(">") gt(stc_value a, stc_value b)
     stc_function_2_t gt_func = gt_table[a.type][b.type];
     if (gt_func != NULL)
         return gt_func(a, b);
+	return (stc_value){.type = STC_I64_TYPE, .val = 0};
 }
 
 stc_value token(">=") ge(stc_value a, stc_value b)
@@ -115,6 +123,7 @@ stc_value token(">=") ge(stc_value a, stc_value b)
     stc_function_2_t ge_func = ge_table[a.type][b.type];
     if (ge_func != NULL)
         return ge_func(a, b);
+	return (stc_value){.type = STC_I64_TYPE, .val = 0};
 }
 
 stc_value token("==") eq(stc_value a, stc_value b)
@@ -122,6 +131,7 @@ stc_value token("==") eq(stc_value a, stc_value b)
     stc_function_2_t eq_func = eq_table[a.type][b.type];
     if (eq_func != NULL)
         return eq_func(a, b);
+    return (stc_value){.type = STC_I64_TYPE, .val = 0};
 }
 
 stc_value token("!=") neq(stc_value a, stc_value b)
@@ -129,6 +139,7 @@ stc_value token("!=") neq(stc_value a, stc_value b)
     stc_function_2_t neq_func = neq_table[a.type][b.type];
     if (neq_func != NULL)
         return neq_func(a, b);
+    return (stc_value){.type = STC_I64_TYPE, .val = 0};
 }
 
 stc_value token("and") and(stc_value a, stc_value b)
@@ -136,6 +147,7 @@ stc_value token("and") and(stc_value a, stc_value b)
     stc_function_2_t and_func = and_table[a.type][b.type];
     if (and_func != NULL)
         return and_func(a, b);
+    return (stc_value){.type = STC_I64_TYPE, .val = 0};
 }
 
 stc_value token("or") or(stc_value a, stc_value b)
@@ -143,6 +155,7 @@ stc_value token("or") or(stc_value a, stc_value b)
     stc_function_2_t or_func = or_table[a.type][b.type];
     if (or_func != NULL)
         return or_func(a, b);
+    return (stc_value){.type = STC_I64_TYPE, .val = 0};
 }
 
 
@@ -150,4 +163,5 @@ stc_value token("not") notV(stc_value a)
 {
     if (a.type == STC_BOOL_TYPE)
         return not_BOOL(a);
+    return (stc_value){.type = STC_I64_TYPE, .val = 0};
 }
