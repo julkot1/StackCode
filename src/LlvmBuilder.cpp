@@ -19,6 +19,12 @@ void LLVMBuilder::createOperatorMap()
                 {
                     operatorMap[token] = &*fun;
                 }
+                else
+                {
+                    auto id = stc::Identifier(tokenString, stc::IDENTIFIER_FUNC);
+                    id.function = fun->funcLLVM;
+                    identifierManager.addIdentifier(id);
+                }
 
             }
         }
@@ -225,21 +231,32 @@ void LLVMBuilder::buildFunction(const std::unique_ptr<stc::Function> & func)
 void LLVMBuilder::buildIdentifier(const stc::Identifier * identifier)
 {
     //TO-DO: Implement identifier handling
-    if (identifier->token == "print")
-    {
-        const auto a = pop();
-        const auto value = builder->CreateExtractValue(a, 1);
-        printInt( value);
-    }
-    else
+    // if (identifier->token == "print")
+    // {
+    //     const auto a = pop();
+    //     const auto value = builder->CreateExtractValue(a, 1);
+    //     printInt( value);
+    // }
     {
         const auto token = identifier->token;
         auto id = identifierManager.getIdentifier(token);
         switch (id.idType)
         {
             case stc::IDENTIFIER_FUNC:
-                builder->CreateCall(id.function, {});
+            {
+                auto argSize = id.function->arg_size() / 2;
+                std::vector<llvm::Value*> args;
+                for (auto i = 0; i < argSize; i++)
+                {
+                    args.push_back(pop());
+                }
+                const auto ret = builder->CreateCall(id.function, args);
+                if (!id.function->getReturnType()->isVoidTy())
+                {
+                    push(ret);
+                }
                 break;
+            }
             default:
                 std::cerr << "Unknown identifier: " << token << "\n";
                 break;

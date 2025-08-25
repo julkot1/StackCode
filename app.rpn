@@ -3,6 +3,5 @@ fun printIntln {
 
 }
 fun main {
-     10 print
-     printIntln
+     3.2 scan print
 }
