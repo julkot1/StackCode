@@ -11,8 +11,8 @@
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Type.h>
-
 #include "RuntimeLibs.h"
+#include "IdentifierManager.h"
 
 class LLVMBuilder {
 public:
@@ -34,7 +34,7 @@ public:
     llvm::Type* i32Type = nullptr;
 
     std::map<stc::OperatorType, stc::Function*> operatorMap;
-
+    IdentifierManager identifierManager;
     void createOperatorMap();
     void createValueStruct();
     void createStackStorage();
@@ -60,6 +60,7 @@ public:
           builder(std::make_unique<llvm::IRBuilder<>>(context)),
           runtimeLib(RuntimeLibs(LIB_PATH))
     {
+         identifierManager = IdentifierManager();
          i8Type = llvm::Type::getInt8Ty(context);
          i64Type = llvm::Type::getInt64Ty(context);
          i32Type = llvm::Type::getInt32Ty(context);

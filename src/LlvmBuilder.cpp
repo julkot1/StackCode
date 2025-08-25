@@ -177,11 +177,12 @@ llvm::Module*  LLVMBuilder::build()
     loadRuntimeLib();
     createOperatorMap();
 
-
-
     for (auto &[_, func] : program->functions)
     {
         func->buildFunctionDefinition(*builder, *module);
+
+        auto identifier = stc::Identifier(func.get());
+        identifierManager.addIdentifier(identifier);
     }
 
     for (auto &[_, func] : program->functions)
@@ -195,6 +196,7 @@ llvm::Module*  LLVMBuilder::build()
 void LLVMBuilder::buildFunction(const std::unique_ptr<stc::Function> & func)
 {
     bool isMain = false;
+
     if (func->name=="main")
     {
         isMain = true;
@@ -203,6 +205,8 @@ void LLVMBuilder::buildFunction(const std::unique_ptr<stc::Function> & func)
         initLibs();
 
     }
+
+
     for (auto &block: func->blocks)
     {
         llvm::BasicBlock *entry = llvm::BasicBlock::Create(context, block->name, func->funcLLVM);
@@ -226,6 +230,20 @@ void LLVMBuilder::buildIdentifier(const stc::Identifier * identifier)
         const auto a = pop();
         const auto value = builder->CreateExtractValue(a, 1);
         printInt( value);
+    }
+    else
+    {
+        const auto token = identifier->token;
+        auto id = identifierManager.getIdentifier(token);
+        switch (id.idType)
+        {
+            case stc::IDENTIFIER_FUNC:
+                builder->CreateCall(id.function, {});
+                break;
+            default:
+                std::cerr << "Unknown identifier: " << token << "\n";
+                break;
+        }
     }
 }
 
@@ -253,6 +271,10 @@ void LLVMBuilder::buildBlock(const std::unique_ptr<stc::Block> & block)
                 break;
             case stc::OPERATION:
                 buildOperation(dynamic_cast<stc::Operator *>(operation.get()));
+                break;
+            default:
+                std::cerr << "Unknown operation type in block: " << block->name << "\n";
+                exit(1);
                 break;
         }
     }

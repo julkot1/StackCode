@@ -1,5 +1,8 @@
+fun printIntln {
+     10 print
+
+}
 fun main {
-     0 10 repeat {
-         1 + print
-    }
+     10 print
+     printIntln
 }

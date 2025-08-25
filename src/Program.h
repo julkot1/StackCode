@@ -99,13 +99,7 @@ namespace stc
         IDENTIFIER_FUNC,
         IDENTIFIER_UNKNOWN
     };
-    class Identifier: public ASTNode
-    {
-    public:
-        IdentifierType idType;
-        std::string token;
-        Identifier(StcParser::IdentifierContext *ctx);
-    };
+
 
 
 
@@ -239,7 +233,18 @@ namespace stc
         std::map<std::string, std::unique_ptr<Struct>>structs;
     };
     OperatorType getOperatorType(const std::string &str);
-
+    class Identifier: public ASTNode
+    {
+    public:
+        IdentifierType idType;
+        std::string token;
+        llvm::Value* value;
+        llvm::Function* function;
+        Identifier(StcParser::IdentifierContext *ctx);
+        Identifier(std::string token, IdentifierType idType);
+        Identifier(Function *func);
+        Identifier(){this->type=IDENTIFIER;}
+    };
 }
 
 

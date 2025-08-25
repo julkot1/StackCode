@@ -15,6 +15,8 @@ add_executable(stcc ${SRC_FILES}
         error.h
         RuntimeLibs.cpp
         RuntimeLibs.h
+        IdentifierManager.cpp
+        IdentifierManager.h
 )
 
 target_link_libraries(stcc PRIVATE LLVM)

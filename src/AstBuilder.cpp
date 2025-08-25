@@ -159,6 +159,7 @@ void AstBuilder::enterOperaor(StcParser::OperaorContext *ctx)
 void AstBuilder::enterIdentifier(StcParser::IdentifierContext *ctx)
 {
     auto id = std::make_unique<stc::Identifier>(ctx);
+    id->type = stc::IDENTIFIER;
     blockStack.top()->operations.push_back(std::move(id));
 
 }

@@ -7,6 +7,7 @@
 #include <llvm/IR/Intrinsics.h>
 #include <bit>
 #include <cstdint>
+#include <utility>
 
 namespace stc
 {
@@ -96,11 +97,25 @@ namespace stc
     }
 
 
-    Identifier::Identifier(StcParser::IdentifierContext *ctx) : idType(IDENTIFIER_UNKNOWN), token(ctx->getText())
+    Identifier::Identifier(StcParser::IdentifierContext *ctx) : idType(IDENTIFIER_UNKNOWN), token(ctx->getText()),
+                                                                value(nullptr),
+                                                                function(nullptr)
     {
         this->type = IDENTIFIER;
     }
 
+    Identifier::Identifier(std::string token, const stc::IdentifierType typ) : idType(typ), token(std::move(token)),
+                                                                               value(nullptr),
+                                                                               function(nullptr)
+    {
+        this->type = IDENTIFIER;
+    }
+    Identifier::Identifier(Function *func) : idType(IDENTIFIER_FUNC), token(func->name),
+                                     value(nullptr),
+                                     function(func->funcLLVM)
+    {
+        this->type = IDENTIFIER;
+    }
     StackOperationType StackOperation::getType(StcParser::StackOperationContext* ctx)
     {
 
