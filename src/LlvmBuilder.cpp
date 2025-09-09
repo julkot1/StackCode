@@ -259,6 +259,7 @@ void LLVMBuilder::buildIdentifier(const stc::Identifier * identifier)
             }
             default:
                 std::cerr << "Unknown identifier: " << token << "\n";
+                std::exit(1);
                 break;
         }
     }

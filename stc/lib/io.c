@@ -2,8 +2,25 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+
+#define MODE_R 0x0
+#define MODE_W 0x1
+#define MODE_E 0x2
+
+struct stc_stream
+{
+    int in_fd;
+    int out_fd;
+    STC_I64_TYPE mode;
+};
+
+struct stc_stream current_stream;
+
 void lib_init init_io()
-{}
+{
+    current_stream = {1,1, R|W};
+
+}
 stc_value print_I64(stc_value v) {
     printf("%lld\n", (long long)v.val);
     return v;

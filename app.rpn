@@ -1,7 +1,12 @@
 fun printIntln {
      10 print
-
 }
+
 fun main {
-     3.2 scan print
+     2 a<I64> :=
+     a
+     0 4 repeat {
+        scan +
+     }
+     print
 }
