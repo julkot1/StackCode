@@ -1,24 +1,4 @@
-body {
-       font-family: "Segoe UI", sans-serif;
-       max-width: 900px;
-       margin: auto;
-       padding: 1rem;
-       line-height: 1.6;
-       background: #f9fafb;
-   }
-
-h1, h2, h3 {
-    color: #2563eb;
-}
-
-pre {
-    background: #1e293b;
-    color: #f8fafc;
-    padding: 1rem;
-    border-radius: 0.5rem;
-}
-
-a {
-    color: #1d4ed8;
-    text-decoration: none;
+:root {
+    --base-font-size: 20px;
+    --theme-color   : #f9d342;
 }

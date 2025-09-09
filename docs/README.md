@@ -1,8 +1,8 @@
-# StackCode Language Documentation
+# StackCode Docs
 
 ## Introduction
 
-StackCode is a stack-based, statically-typed programming language designed for simplicity and performance. It compiles to LLVM IR and supports a variety of types and operations, including arithmetic, logic, control flow, and user-defined functions and structures.
+StackCode is a stack-based, statically-typed programming language designed for simplicity :-) and performance (in future). It compiles to LLVM IR and supports a variety of types and operations, including arithmetic, logic, control flow, and user-defined functions and structures.
 
 ## Types
 
